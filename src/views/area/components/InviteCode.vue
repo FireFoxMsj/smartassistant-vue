@@ -3,6 +3,7 @@
     v-model="show"
     :showConfirmButton="false"
     :lockScroll="false"
+    :close-on-click-overlay="true"
     @opened="onOpened"
     @closed="onClosed"
     class="code-dialog">
@@ -153,6 +154,8 @@ export default {
 </script>
 <style lang="scss" scoped>
 .code-dialog {
+  position: absolute;
+  top: 50%;
   background-color: transparent;
   border-radius: 0.2rem;
 }

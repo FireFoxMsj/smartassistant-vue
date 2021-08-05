@@ -271,14 +271,18 @@ button {
 #app .van-skeleton__avatar+.van-skeleton__content {
   padding-top: 0.46rem;
 }
+#app .van-sticky--fixed {
+  width: 100%;
+  max-width: 750px;
+  left: 50%;
+  transform: translateX(-50%);
+}
 .empty-box img {
   width: 2rem;
   height: auto;
 }
 @media only screen and (min-width: 750px){
-  .van-sticky--fixed{
+  .van-sticky--fixed {
     width: 750px;
-    left: 50%;
-    transform: translateX(-50%);
   }
 }

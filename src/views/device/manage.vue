@@ -33,7 +33,7 @@
         class="device-item clearfix">
         <span class="device-item--label float-l">{{ $t('devicemanage.position') }}</span>
         <p class="device-item--name float-r">
-          <span class="one-line">{{ area.name }}</span>
+          <span class="one-line">{{ location.name }}</span>
           <van-icon name="arrow" class="device-item--icon"/>
         </p>
       </div>
@@ -92,7 +92,7 @@ export default {
     }
   },
   computed: {
-    area() {
+    location() {
       return this.deviceInfo.location || {}
     },
     areaInfo() {
@@ -111,7 +111,7 @@ export default {
         name: 'locationSetting',
         query: {
           areaId: this.areaInfo.id,
-          locationId: this.area.id || '',
+          locationId: this.location.id || '',
           deviceId: this.id
         }
       })
@@ -143,7 +143,8 @@ export default {
         return
       }
       const params = {
-        name: room
+        name: room,
+        location_id: this.location.id
       }
       this.nameLoading = true
       this.http.editDevice(this.id, params).then((res) => {

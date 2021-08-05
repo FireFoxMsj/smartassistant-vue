@@ -30,15 +30,20 @@
           <span class="over">
             {{ roleName }}
           </span>
-        <van-icon name="arrow" class="right-icon"/>
+        <van-icon v-if="!isOwner" name="arrow" class="right-icon"/>
         </p>
       </div>
     </div>
-    <div class="deletete-btn-placeholder" v-if="delPermission">
+    <div class="delete-btn-placeholder" v-if="delPermission&&!isOwner">
       <div class="delete-btn-box">
         <button class="delete-btn" @click="sureShow = true">{{ $t('global.del') }}</button>
       </div>
     </div>
+    <div class="transfer-btn-placeholder" v-if="isOwner&&userInfo.user_id===memberInfo.user_id">
+        <div class="transfer-btn-box">
+          <button class="transfer-btn" @click="goTransferOwner">{{ $t('global.tra') }}</button>
+        </div>
+      </div>
     </template>
     <!-- 选择角色 -->
     <div class="sheet-part">
@@ -116,7 +121,7 @@ export default {
       roleList: [],
       headerImg: '',
       userId: '', // 用户id
-      isCreator: false,
+      isOwner: false,
       isSelf: false,
       memberInfo: {}, // 用户信息
       saveLoading: false
@@ -125,7 +130,7 @@ export default {
   computed: {
     ...mapGetters(['area', 'userInfo', 'permissions']),
     delPermission() {
-      return (this.permissions.delete_area_member && !(this.isCreator || this.isSelf))
+      return (this.permissions.delete_area_member && !(this.isOwner || this.isSelf))
     },
     roleName() {
       let role = ''
@@ -155,7 +160,7 @@ export default {
           return
         }
         const { roles } = res.data
-        this.roleList = roles || []
+        this.roleList = roles.filter(item => item.id !== -1) || []
       })
     },
     // 获取成员详情
@@ -166,7 +171,7 @@ export default {
         if (res.status !== 0) {
           return
         }
-        this.isCreator = res.data.is_creator
+        this.isOwner = res.data.is_owner
         this.isSelf = res.data.is_self
         this.memberInfo = res.data || {}
         const roleList = this.memberInfo.role_infos || []
@@ -177,7 +182,7 @@ export default {
     },
     // 修改成员按钮
     handleRoleChange() {
-      if (!this.permissions.update_area_member_role || this.isCreator) {
+      if (!this.permissions.update_area_member_role || this.isOwner) {
         return
       }
       this.sceneShow = true
@@ -225,6 +230,10 @@ export default {
       } else {
         done()
       }
+    },
+    // 跳转转移拥有者
+    goTransferOwner() {
+      this.$router.push({ name: 'transferOwner' })
     }
   },
   created() {
@@ -291,17 +300,17 @@ export default {
   height: 0.3rem;
   margin-right: 0.2rem;
 }
-.deletete-btn-placeholder {
+.delete-btn-placeholder,.transfer-btn-placeholder {
   height: 1.6rem;
 }
-.delete-btn-box {
+.delete-btn-box,.transfer-btn-box {
   position: fixed;
   bottom: 0;
   left: 50%;
   transform: translateX(-50%);
   padding: 0.3rem 0;
 }
-.delete-btn {
+.delete-btn,.transfer-btn {
   width: 6.9rem;
   height: 1rem;
   background: #fff;

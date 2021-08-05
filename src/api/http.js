@@ -1,6 +1,7 @@
 import * as http from './instance'
 
-const apiHeader = process.env.NODE_ENV === 'development' ? '/api' : ''
+const apiHeader = process.env.NODE_ENV === 'development' ? '/api' : '/api'
+const scHeader = process.env.NODE_ENV === 'development' ? '/sc' : 'https://sc.zhitingtech.com'
 
 /**
 * 请求列子
@@ -71,6 +72,15 @@ export const getBrandList = params => http.g(
 */
 export const getBrandDetail = (id, params = {}) => http.g(
   `${apiHeader}/brands/${id}`,
+  params
+)
+
+/**
+* 插件详情
+@param { id: String } 参数路径，插件id
+*/
+export const getPluginDetail = (id, params = {}) => http.g(
+  `${apiHeader}/plugins/${id}`,
   params
 )
 
@@ -169,8 +179,8 @@ export const editLocationSort = (params = {}) => http.u(
 * 登录
 @param { phone: String, password: String } 账号 密码
 */
-export const login = (params = {}) => http.p(
-  `${apiHeader}/users/login`,
+export const sessionLogin = (params = {}) => http.p(
+  `${apiHeader}/sessions/login`,
   params
 )
 
@@ -180,15 +190,6 @@ export const login = (params = {}) => http.p(
 */
 export const sessionLogout = (params = {}) => http.p(
   `${apiHeader}/sessions/logout`,
-  params
-)
-
-/**
-* 内网登录
-@param { account_name: String, password: String } 账号 密码
-*/
-export const sessionLogin = (params = {}) => http.p(
-  `${apiHeader}/sessions/login`,
   params
 )
 
@@ -378,5 +379,67 @@ export const executeScene = (id, params = {}) => http.p(
  */
 export const logsList = (params = {}) => http.g(
   `${apiHeader}/scene_logs`,
+  params
+)
+
+/**
+ * 获取网盘授权列表
+ @param {}
+ */
+export const getScopes = (params = {}) => http.g(
+  `${apiHeader}/scopes`,
+  params
+)
+
+/**
+ * 获取scope_token接口
+ @param { scopes: string[] } 权限范围列表，user，area 等，需要设置白名单
+ */
+export const getScopesToken = (params = {}) => http.p(
+  `${apiHeader}/scopes/token`,
+  params
+)
+
+/**
+ * 转移拥有者
+ @param { id } 新拥有者的id
+ */
+export const transferOwner = (id, params = {}) => http.u(
+  `${apiHeader}/users/${id}/owner`,
+  params
+)
+
+/**
+ * 获取第三方绑定验证码
+ @param {}
+ */
+export const verification = (params = {}) => http.p(
+  `${apiHeader}/verification/code`,
+  params
+)
+
+
+/**
+* 第三方授权登录
+@param { phone: String, password: String } 账号 密码
+*/
+export const thirdLogin = (params = {}) => http.p(
+  `${scHeader}/sessions/login`,
+  params
+)
+
+/**
+* 第三方绑定
+*/
+export const thirdBind = (params = {}) => http.p(
+  `${scHeader}/cloud/bind`,
+  params
+)
+
+/**
+* sc家庭列表
+*/
+export const getScAreaList = (params = {}) => http.g(
+  `${scHeader}/areas`,
   params
 )

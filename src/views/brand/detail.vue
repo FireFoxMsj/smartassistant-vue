@@ -23,17 +23,17 @@
             :src="detailData.logo_url"/>
           <p class="brand-name two-line float-l">{{ detailData.name }}</p>
           <template>
-          <span
-            v-if="detailData.is_added"
-            class="added float-r">{{ $t('branddetail.added') }}</span>
-            <button
-              v-else-if="detailData.is_newest"
-              class="op-btn float-r"
-              @click="updateAll">{{ $t('branddetail.updateAll') }}</button>
-            <button
-              v-else
+          <button
+              v-if="!detailData.is_added"
               class="op-btn float-r"
               @click="installAll">{{ $t('branddetail.addAll') }}</button>
+            <button
+              v-else-if="!detailData.is_newest"
+              class="op-btn float-r"
+              @click="updateAll">{{ $t('branddetail.updateAll') }}</button>
+            <span
+              v-else
+              class="added float-r">{{ $t('branddetail.added') }}</span>
           </template>
         </div>
         <div
@@ -48,7 +48,7 @@
               color="#1989fa"
               size="0.4rem"
               class="float-r"/>
-            <div class="float-r" v-show="!plugin.isInstall">
+            <div class="float-r" v-show="!plugin.isInstall && !isInsert">
               <span v-if="!plugin.is_added" class="op-btn" @click.stop="install(plugin)">{{ $t('global.add') }}</span>
               <span v-else class="op-btn" @click.stop="handleDelBtn(plugin)">{{ $t('global.del') }}</span>
               <span v-if="!plugin.is_newest && plugin.is_added" class="op-btn mgl20" @click.stop="update(plugin)">{{ $t('global.update') }}</span>
@@ -102,7 +102,7 @@ export default {
     }
   },
   computed: {
-    ...mapGetters(['websocket']),
+    ...mapGetters(['websocket', 'isInsert']),
     pluginList() {
       return this.detailData.plugins || []
     },
@@ -199,9 +199,11 @@ export default {
       this.$router.go(-1)
     },
     toPluginDetail(plugin) {
-      this.$methods.setSession('pluginInfo', JSON.stringify(plugin))
       this.$router.push({
-        name: 'pluginDetail'
+        name: 'pluginDetail',
+        query: {
+          pluginId: plugin.id
+        }
       })
     }
   },

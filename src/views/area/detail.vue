@@ -13,61 +13,70 @@
     <!--loading模块-->
     <Loading v-if="loading"></Loading>
     <template v-else>
-    <div class="detail-box">
-      <div class="item clearfix" @click="permissions.update_area_name ? show = true : noPermissionTip()">
-        <span class="item__label one-line float-l">{{ $t('areadetail.name') }}</span>
-        <p class="item__name float-r">
-          <span class="one-line">{{ areaInfo.name }}</span>
-          <van-icon name="arrow" class="item__icon"/>
-        </p>
-      </div>
-      <div @click="toAreaManage" class="item clearfix">
-        <span class="item__label one-line float-l">{{ $t('areadetail.area') }}</span>
-        <span class="item__name float-r">
-          {{ areaInfo.location_count }}
-          <van-icon name="arrow" class="item__icon"/>
-        </span>
-      </div>
-      <div v-if="permissions.get_area_invite_code" @click="sceneShow = true" class="item clearfix">
-        <span class="item__label one-line float-l">{{ $t('areadetail.code') }}</span>
-        <span class="item__name float-r">
-          <van-icon name="arrow" class="item__icon"/>
-        </span>
-      </div>
-      <div @click="permissions.get_role ? toRoleList() : noPermissionTip()" class="item clearfix">
-        <span class="item__label one-line float-l">{{ $t('areadetail.role') }}</span>
-        <span class="item__name float-r">
-          {{ areaInfo.role_count }}
-          <van-icon name="arrow" class="item__icon"/>
-        </span>
-      </div>
-    </div>
-    <div v-if="MemberList.length" class="role-list">
-      <div class="role-title">{{ $t('areadetail.member') }}（{{ MemberList.length }}{{ $t('areadetail.man') }}）</div>
-      <div
-        v-for="member in MemberList"
-        :key="member.user_id" class="role-item"
-        @click="toMemberManage(member.user_id)">
-        <div class="role-left">
-          <img src="../../assets/default-header.png">
+      <div class="detail-box">
+        <div class="item clearfix" @click="permissions.update_area_name ? show = true : noPermissionTip()">
+          <span class="item__label one-line float-l">{{ $t('areadetail.name') }}</span>
+          <p class="item__name float-r">
+            <span class="one-line">{{ areaInfo.name }}</span>
+            <van-icon name="arrow" class="item__icon"/>
+          </p>
         </div>
-        <div class="role-right">
-          <p class="user-name">{{ member.nickname }}</p>
-          <p class="role-name">{{ getMemberRole(member) }}</p>
-          <van-icon name="arrow" class="role-item__icon"/>
+        <div @click="toAreaManage" class="item clearfix">
+          <span class="item__label one-line float-l">{{ $t('areadetail.area') }}</span>
+          <span class="item__name float-r">
+            {{ areaInfo.location_count }}
+            <van-icon name="arrow" class="item__icon"/>
+          </span>
+        </div>
+        <div v-if="permissions.get_area_invite_code" @click="sceneShow = true" class="item clearfix">
+          <span class="item__label one-line float-l">{{ $t('areadetail.code') }}</span>
+          <span class="item__name float-r">
+            <van-icon name="arrow" class="item__icon"/>
+          </span>
+        </div>
+        <div @click="permissions.get_role ? toRoleList() : noPermissionTip()" class="item clearfix">
+          <span class="item__label one-line float-l">{{ $t('areadetail.role') }}</span>
+          <span class="item__name float-r">
+            {{ areaInfo.role_count }}
+            <van-icon name="arrow" class="item__icon"/>
+          </span>
+        </div>
+        <div class="item clearfix" v-if="false">
+          <span class="item__label one-line float-l">{{ $t('areadetail.verify') }}</span>
+          <span class="item__name float-r">
+            <van-button type="info" size="small" @click="getVerify()">{{ $t('areadetail.creat') }}</van-button>
+          </span>
         </div>
       </div>
-    </div>
-    <div class="op-btn-placeholder" v-if="!userInfo.is_creator">
-      <div class="op-btn-box">
-        <button @click="handleQuit" class="op-btn">{{ $t('areadetail.quit') }}</button>
-      </div>
-    </div>
-      <div class="op-btn-placeholder" v-else>
-        <div class="op-btn-box">
-          <button @click="handleDelete" class="op-btn">{{ $t('global.del') }}</button>
+      <div v-if="MemberList.length" class="role-list">
+        <div class="role-title">{{ $t('areadetail.member') }}（{{ MemberList.length }}{{ $t('areadetail.man') }}）</div>
+        <div
+          v-for="member in MemberList"
+          :key="member.user_id" class="role-item"
+          @click="toMemberManage(member.user_id)">
+          <div class="role-left">
+            <img src="../../assets/default-header.png">
+          </div>
+          <div class="role-right">
+            <p class="user-name">{{ member.nickname }}</p>
+            <p class="role-name">{{ getMemberRole(member) }}</p>
+            <van-icon name="arrow" class="role-item__icon"/>
+          </div>
         </div>
       </div>
+      <!--demo嵌入隐藏-->
+      <template v-if="!isInsert">
+        <div class="op-btn-placeholder" v-if="!userInfo.is_owner">
+          <div class="op-btn-box">
+            <button @click="handleQuit" class="op-btn">{{ $t('areadetail.quit') }}</button>
+          </div>
+        </div>
+        <div class="op-btn-placeholder" v-else>
+          <div class="op-btn-box">
+            <button @click="handleDelete" class="op-btn">{{ $t('global.del') }}</button>
+          </div>
+        </div>
+      </template>
     </template>
     <!--修改名称弹窗-->
     <NameSheet
@@ -84,7 +93,10 @@
       confirm-button-color="#2DA3F6"
       cancel-button-color="#94A5BE">
       <h3 class="delete-title">{{ dialogInfo.title }}</h3>
-      <p class="delete-tip">{{ dialogInfo.content }}</p>
+      <div class="delete-tip">
+        <p>{{ dialogInfo.content }}</p>
+        <van-checkbox v-model="deleteChecked" icon-size=".35rem" checked-color="#FF0000"><span  class="checked-text">同时删除智汀家庭云盘存储的文件</span></van-checkbox>
+      </div>
     </van-dialog>
     <!-- 选择角色 -->
     <div class="sheet-part">
@@ -143,11 +155,27 @@
       v-model="inviteShow"
       :src="qrCode"
       :code="codeInfo"/>
+    <!--获取验证码弹窗-->
+    <van-dialog
+      v-model="verifyShow"
+      show-cancel-button
+      :before-close="handleVerify"
+      confirm-button-color="#2DA3F6"
+      cancel-button-color="#94A5BE"
+      :cancelButtonText="$t('global.copy')"
+      :confirmButtonText="$t('global.confirm')">
+      <h3 class="verify-title">{{ $t('areadetail.verify') }}</h3>
+      <p class="verify-tips">{{ $t('areadetail.effective') }}</p>
+      <div class="verify-code">
+        <p>{{verifyCode}}</p>
+      </div>
+    </van-dialog>
   </div>
 </template>
 <script>
 import NameSheet from '@/components/NameSheet.vue'
 import { mapGetters, mapActions } from 'vuex'
+import clip from '@/utils/clipboard'
 import InviteCode from './components/InviteCode.vue'
 
 const activeIcon = require('../../assets/check-box-icon.png')
@@ -165,6 +193,7 @@ export default {
       areaInfo: {},
       show: false,
       dialogShow: false,
+      deleteChecked: false,
       dialogType: 'quit', // quit 退出 delete 删除
       loading: false,
       nameLoading: false,
@@ -178,11 +207,13 @@ export default {
       MemberList: [], // 成员列表
       qrCode: '',
       userName: '', // 用户名称
-      position: 0
+      position: 0,
+      verifyShow: false,
+      verifyCode: '345fos'
     }
   },
   computed: {
-    ...mapGetters(['area', 'userInfo', 'permissions']),
+    ...mapGetters(['area', 'userInfo', 'permissions', 'isInsert']),
     dialogInfo() {
       if (this.dialogType === 'quit') {
         return {
@@ -204,7 +235,7 @@ export default {
   },
   watch: {},
   methods: {
-    ...mapActions(['setToken', 'setUserInfo']),
+    ...mapActions(['setToken']),
     onClickLeft() {
       this.$router.go(-1)
     },
@@ -268,7 +299,7 @@ export default {
           return
         }
         const { roles } = res.data
-        this.roleList = roles || []
+        this.roleList = roles.filter(item => item.id !== -1) || []
       })
     },
     // 获取成员列表
@@ -346,12 +377,16 @@ export default {
     },
     deleteArea() {
       // 删除家庭
-      this.http.deleteArea(this.id).then((res) => {
+      this.http.deleteArea(this.id, { is_del_cloud_disk: this.deleteChecked }).then((res) => {
         this.dialogShow = false
         if (res.status !== 0) {
           return
         }
-        this.$toast(this.$t('global.delSuccess'))
+        if (this.deleteChecked) {
+          this.$toast(this.$t('global.delSuccessChecked'))
+        } else {
+          this.$toast(this.$t('global.delSuccess'))
+        }
         this.onClickLeft()
       })
     },
@@ -404,6 +439,33 @@ export default {
       const scrollTop = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop
       this.position = scrollTop
     },
+    // 获取验证码
+    getVerify() {
+      this.$toast.loading({
+        message: this.$t('global.loadingVerify'),
+        forbidClick: true,
+      })
+      this.http.verification().then((res) => {
+        this.$toast.clear()
+        if (res.status !== 0) {
+          return
+        }
+        this.verifyCode = res.data.code
+        this.verifyShow = true
+      })
+    },
+    handleVerify(action, done) {
+      if (action === 'confirm') {
+        setTimeout(done, 100)
+      } else {
+        this.handleCopy(this.verifyCode, window.event)
+        done()
+      }
+    },
+    // 复制
+    handleCopy(text, event) {
+      clip(text, event)
+    }
   },
   created() {
     const { query } = this.$route
@@ -442,14 +504,18 @@ export default {
 }
 .item {
   line-height: 1.1;
-  padding: 0.34rem 0.3rem;
+  padding: 0.2rem 0.3rem;
   background: #fff;
-  border-bottom: 0.01rem solid #eee;
+  border-bottom: 1px solid #eee;
+  display: flex;
+  align-items: center;
+  height: 1rem;
 }
 .item__label {
   display: inline-block;
   font-size: 0.28rem;
   color: #3F4663;
+  flex: 1;
 }
 .item__name {
   font-size: 0.28rem;
@@ -457,6 +523,14 @@ export default {
   span {
     display: inline-block;
     max-width: 4.8rem;
+  }
+  .van-button{
+    background-color: #EAF6FE;
+    color: #2DA3F6;
+    border-color: #2DA3F6;
+    width: 1.2rem;
+    border-radius: .08rem;
+    font-weight: 500;
   }
 }
 .item__icon {
@@ -495,12 +569,19 @@ export default {
   color: #3F4663;
 }
 .delete-tip {
-  padding: 0.23rem 0.3rem 0.56rem 0.3rem;
-  font-size: 0.24rem;
-  font-weight: bold;
-  line-height: 1.5;
-  color: #3F4663;
-  text-align: center;
+  padding: 0.23rem 0.4rem 0.56rem 0.4rem;
+  p{
+    font-size: .28rem;
+    font-weight: bold;
+    line-height: 1.5;
+    color: #3F4663;
+    margin-bottom: .15rem;
+  }
+  .checked-text{
+    font-size: .28rem;
+    color: #FF0000;
+    font-weight: bold;
+  }
 }
 .role-list {
   background: #fff;
@@ -610,6 +691,27 @@ export default {
   border-radius: 0.2rem;
   color: #3F4663;
 }
+  .verify-title {
+    padding-top: 0.4rem;
+    text-align: center;
+    font-size: .32rem;
+    font-weight: bold;
+    color: #3F4663;
+    margin-bottom: .25rem;
+  }
+  .verify-tips {
+    font-size: .28rem;
+    font-weight: bold;
+    color: #94A5BE;
+    text-align: center;
+  }
+  .verify-code{
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #3F4663;
+    text-align: center;
+    padding: .25rem .2rem;
+  }
 </style>
 <style scoped>
 .sheet-part >>> .van-action-sheet__header {

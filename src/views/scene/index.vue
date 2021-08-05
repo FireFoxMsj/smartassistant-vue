@@ -364,10 +364,15 @@ export default {
     height: 100%;
   }
   .scene {
-    height: calc(100vh - 50px);
+    height: calc(100vh - 1rem);
     background: $bgColor;
     overflow-y: scroll;
-    -webkit-overflow-scrolling: touch
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .scene::-webkit-scrollbar{
+    display: none;
   }
   .header {
     position: relative;

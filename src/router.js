@@ -15,11 +15,13 @@ import LocationDevice from './views/location/device.vue'
 import LocationSetting from './views/location/setting.vue'
 import Login from './views/login/index.vue'
 import Register from './views/register/index.vue'
-import AuthLogin from './views/login/auth.vue'
+import AuthStepOne from './views/login/auth-step-1.vue'
+import AuthStepTwo from './views/login/auth-step-2.vue'
+import AuthPan from './views/login/auth-pan.vue'
 import User from './views/user/index.vue'
 import MemberManage from './views/user/manage.vue'
 import ThirdPlatform from './views/third-platform/index.vue'
-import ExplainGuide from './views/guide/explain.vue'
+import UserCredentials from './views/guide/user-credentials.vue'
 import SceneGuide from './views/guide/scene.vue'
 import RoleList from './views/role/index.vue'
 import RoleAdd from './views/role/add.vue'
@@ -31,6 +33,10 @@ import EffectiveTime from './views/scene/effective-time.vue'
 import ConditionsList from './views/scene/condition-list.vue'
 import ConditionsDevice from './views/scene/condition-device.vue'
 import ConditionsScene from './views/scene/condition-scene.vue'
+import HomeKit from './views/login/homekit.vue'
+import PowerManage from './views/owner/power-manage.vue'
+import CertificateManage from './views/owner/certificate-manage.vue'
+import TransferOwner from './views/user/transfer-owner.vue'
 
 Vue.use(Router)
 
@@ -67,6 +73,16 @@ export default new Router({
       path: '/owner',
       name: 'owner',
       component: Owner
+    },
+    {
+      path: '/owner/power-manage',
+      name: 'powerManage',
+      component: PowerManage
+    },
+    {
+      path: '/owner/certificate-manage',
+      name: 'certificateManage',
+      component: CertificateManage
     },
     {
       path: '/brand/support',
@@ -119,9 +135,19 @@ export default new Router({
       component: ProfessionLogin
     },
     {
-      path: '/auth-login',
-      name: 'authLogin',
-      component: AuthLogin
+      path: '/auth-step-one',
+      name: 'authStepOne',
+      component: AuthStepOne
+    },
+    {
+      path: '/auth-step-two',
+      name: 'authStepTwo',
+      component: AuthStepTwo
+    },
+    {
+      path: '/auth-pan',
+      name: 'authPan',
+      component: AuthPan
     },
     {
       path: '/register',
@@ -139,9 +165,9 @@ export default new Router({
       component: ThirdPlatform
     },
     {
-      path: '/guide/explain',
-      name: 'explainGuide',
-      component: ExplainGuide
+      path: '/guide/user-credentials',
+      name: 'userCredentials',
+      component: UserCredentials
     },
     {
       path: '/role-list',
@@ -192,6 +218,16 @@ export default new Router({
       path: '/scene/condition/scene',
       name: 'conditionsScene',
       component: ConditionsScene
+    },
+    {
+      path: '/homeKit',
+      name: 'homeKit',
+      component: HomeKit
+    },
+    {
+      path: '/transfer/owner',
+      name: 'transferOwner',
+      component: TransferOwner
     }
   ]
 })

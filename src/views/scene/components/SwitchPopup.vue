@@ -104,6 +104,18 @@ export default {
     switchChange(item) {
       this.active = item.value
       this.$emit('on-change', item)
+    },
+    // 'false'字符串 转 false Boolean
+    transform(str) {
+      let res = false
+      if (str === 'false') {
+        res = false
+      } else if (str === 'true') {
+        res = true
+      } else if (str === 'toggle') {
+        res = 'toggle'
+      }
+      return res
     }
   }
 }

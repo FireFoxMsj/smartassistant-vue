@@ -2,8 +2,8 @@ const path = require('path')
 
 const resolve = dir => path.join(__dirname, dir)
 // 远程代理Ip
-const baseUrl = 'http://sa.zhitingtech.com'
-// const baseUrl = 'http://192.168.0.159:8088'
+// const baseUrl = 'http://sa.zhitingtech.com'
+const baseUrl = 'http://192.168.0.123:9020'
 
 // 输出文件夹 智能输出为dist 插件输出为yeelight
 const outputDir = process.env.PLUGIN_NAME ? 'plugin' : 'dist'
@@ -27,7 +27,14 @@ module.exports = {
         target: baseUrl,
         changeOrigin: true,
         pathRewrite: {
-          '^/api': '/'
+          '^/api': '/api' // 本地加api
+        }
+      },
+      '/sc': {
+        target: 'http://192.168.0.123:9097',
+        changeOrigin: true,
+        pathRewrite: {
+          '^/sc': '/'
         }
       }
     },
@@ -48,7 +55,7 @@ module.exports = {
     // provide the app's title in webpack's name field, so that
     // it can be accessed in index.html to inject the correct title.
     // config.plugins.push(
-    //   //手机端调试
+    //   // 手机端调试
     //   new vConsole({
     //     filter: [], // 需要过滤的入口文件
     //     enable: process.env.NODE_ENV !== 'production'// 生产环境不打开

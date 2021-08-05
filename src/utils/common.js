@@ -164,5 +164,18 @@ export default {
       time = `${year}-${mon}-${day} ${hours}:${minu}`
     }
     return time
+  },
+
+  /**
+   * int类型的计算百分比
+   * @param { max, min, value } max区间最大值， min区间最小值, value区间真实值
+   */
+  getPercent(max, min, value) {
+    // let res = Number(((value - min) / (max - min) * 100))
+    let res = Math.round(Number(((value - min) / (max - min) * 100)))
+    if (res < 0) {
+      res = 0
+    }
+    return res
   }
 }

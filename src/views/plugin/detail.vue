@@ -10,42 +10,45 @@
         <van-icon name="arrow-left" color="#3F4663"/>
       </template>
     </van-nav-bar>
-    <div class="plugin-part">
-      <div class="plugin-item">
-        <div class="item-top clearfix">
-          <span class="name one-line">{{ pluginInfo.name }}</span>
-          <van-loading
-            v-show="isInstall"
-            color="#1989fa"
-            size="0.4rem"
-            class="float-r"/>
-          <div class="float-r" v-show="!isInstall">
-            <span v-if="!pluginInfo.is_added" class="op-btn" @click.stop="install">{{ $t('global.add') }}</span>
-            <span v-else class="op-btn" @click.stop="handleDelBtn">{{ $t('global.del') }}</span>
-            <span v-if="!pluginInfo.is_newest && pluginInfo.is_added" class="op-btn mgl20" @click.stop="update">{{ $t('global.update') }}</span>
+    <Loading v-if="loading"></Loading>
+    <template v-else>
+      <div class="plugin-part">
+        <div class="plugin-item">
+          <div class="item-top clearfix">
+            <span class="name one-line">{{ pluginInfo.name }}</span>
+            <van-loading
+              v-show="isInstall"
+              color="#1989fa"
+              size="0.4rem"
+              class="float-r"/>
+            <div class="float-r" v-show="!isInstall && !isInsert">
+              <span v-if="!pluginInfo.is_added" class="op-btn" @click.stop="install">{{ $t('global.add') }}</span>
+              <span v-else class="op-btn" @click.stop="handleDelBtn">{{ $t('global.del') }}</span>
+              <span v-if="!pluginInfo.is_newest && pluginInfo.is_added" class="op-btn mgl20" @click.stop="update">{{ $t('global.update') }}</span>
+            </div>
           </div>
-        </div>
-        <p class="version">{{ $t('plugindetail.version') }}：{{ pluginInfo.version }}</p>
-        <p class="desc">{{ pluginInfo.info }}</p>
-      </div>
-    </div>
-    <div class="device-part">
-      <p class="device-word">{{ $t('plugindetail.support') }}</p>
-      <div class="device-list">
-        <div
-          v-for="device in deviceList"
-          :key="device.name"
-          class="device-item">
-          <div class="device-pic">
-            <CommonImage
-              class="img"
-              fit="contain"
-              :src="device.logo_url"/>
-          </div>
-          <p class="device-name">{{ device.name }}</p>
+          <p class="version">{{ $t('plugindetail.version') }}：{{ pluginInfo.version }}</p>
+          <p class="desc">{{ pluginInfo.info }}</p>
         </div>
       </div>
-    </div>
+      <div class="device-part">
+        <p class="device-word">{{ $t('plugindetail.support') }}</p>
+        <div class="device-list">
+          <div
+            v-for="device in deviceList"
+            :key="device.name"
+            class="device-item">
+            <div class="device-pic">
+              <CommonImage
+                class="img"
+                fit="contain"
+                :src="device.logo_url"/>
+            </div>
+            <p class="device-name">{{ device.name }}</p>
+          </div>
+        </div>
+      </div>
+    </template>
     <!--删除确认弹窗-->
     <van-dialog
       v-model="sureShow"
@@ -70,11 +73,12 @@ export default {
       isInstall: false,
       deleteTip: '', // 删除提示
       msgId: 1, // 安装消息id
-      updateMsgId: 1 // 更新消息id
+      updateMsgId: 1, // 更新消息id
+      loading: false
     }
   },
   computed: {
-    ...mapGetters(['websocket']),
+    ...mapGetters(['websocket', 'isInsert']),
     deviceList() {
       return this.pluginInfo.support_devices || []
     }
@@ -82,6 +86,19 @@ export default {
   methods: {
     onClickLeft() {
       this.$router.go(-1)
+    },
+    // 获取插件详情
+    getPluginDetail() {
+      this.loading = true
+      this.http.getPluginDetail(this.pluginId).then((res) => {
+        this.loading = false
+        if (res.status !== 0) {
+          return
+        }
+        this.pluginInfo = res.data.plugin
+      }).catch(() => {
+        this.loading = false
+      })
     },
     // 添加插件
     install() {
@@ -140,11 +157,7 @@ export default {
     const { query } = this.$route
     this.pluginId = query.pluginId
     if (this.pluginId) {
-      // console.log()
-      console.log(11)
-    } else {
-      const objStr = this.$methods.getSession('pluginInfo')
-      this.pluginInfo = objStr ? JSON.parse(objStr) : {}
+      this.getPluginDetail()
     }
   },
   mounted() {

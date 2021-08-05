@@ -1,18 +1,21 @@
 <template>
   <div class="home">
-    <van-notice-bar
-      v-show="!isOnline"
-      color="#F6AE1E"
-      background="#FDF3DF"
-      :scrollable="false"
-      text="当前设备已离线，连接局域网后才能控制此设备"/>
+    <OfflineNotice
+      :show="!isOnline"
+      :loading="isFleshing"
+      @onReflesh="reflesh"/>
     <div class="device">
+      <div class="empty-box" v-if="loading">
+        <van-loading v-if="loading" size=".4rem" color="#0094ff" vertical>加载中...</van-loading>
+      </div>
       <!-- 单开 -->
-      <div v-if="false" class="switch-box">
+      <div v-if="switchList.length === 1" class="switch-box">
         <div
+          v-for="(item,index) in switchList"
+          :key="index"
           class="single-open"
-          :class="[single.isOn ? 'switch-on' : 'switch-off']"
-          @click="openLight(single)">
+          :class="[item.attributes[0].val ? 'switch-on' : 'switch-off']"
+          @click="openLight(item)">
           <div class="light"></div>
           <div class="btn-box">
             <div class="open-btn"></div>
@@ -21,103 +24,209 @@
         </div>
       </div>
       <!-- 双开 -->
-      <div v-if="false" class="switch-box">
+      <div v-if="switchList.length === 2" class="switch-box">
         <div
-          v-for="item in doubleList"
-          :key="item.name"
+          v-for="(item,index) in switchList"
+          :key="index"
           class="double-open"
-          :class="[item.isOn ? 'switch-on' : 'switch-off']"
+          :class="[item.attributes[0].val ? 'switch-on' : 'switch-off']"
           @click="openLight(item)">
           <div class="light"></div>
           <div class="btn-box">
             <div class="open-btn"></div>
-            <p class="btn-word">{{ item.name }}</p>
+            <p class="btn-word">{{ index===0?'左键':index===1?'右键':'' }}</p>
           </div>
         </div>
       </div>
       <!-- 三开 -->
-      <div class="switch-box">
+      <div v-if="switchList.length === 3" class="switch-box">
         <div
-          v-for="item in thirdList"
-          :key="item.name"
+          v-for="(item,index) in switchList"
+          :key="index"
           class="third-open"
-          :class="[item.isOn ? 'switch-on' : 'switch-off']"
+          :class="[item.attributes[0].val ? 'switch-on' : 'switch-off']"
           @click="openLight(item)">
           <div class="light"></div>
           <div class="btn-box">
             <div class="open-btn"></div>
-            <p class="btn-word">{{ item.name }}</p>
+            <p class="btn-word">{{ index===0?'左键':index===1?'中键':'右键' }}</p>
           </div>
         </div>
       </div>
       <p class="device-name">开关</p>
     </div>
+    <!-- 底部更新插件菜单 -->
+    <BottomMenu ref="menu" :plugin-info="switchInfo">
+      <template v-slot:trigger>
+        <div class="condition-item" @click="handleUpdate()">
+          <div class="item-name">固件升级</div>
+          <van-icon name="arrow" color="#CCCCCC" size=".4rem"/>
+        </div>
+      </template>
+    </BottomMenu>
   </div>
 </template>
 
 <script>
 import Socket from 'ws-plugin'
+// import { getRemote } from '../../../config/index'
+import BottomMenu from '../../components/BottomMenu.vue'
+import OfflineNotice from '../../components/OfflineNotice.vue'
+
+const menu = require('../assets/menu.png')
 
 export default {
   name: 'home',
+  components: {
+    BottomMenu,
+    OfflineNotice
+  },
   data() {
     return {
+      menu,
+      switchType: 'switchThird',
+      loading: false,
       ws: null, // websocket对象
       isOn: false, // 灯是否打开
       isOnline: true, // 设备在线离线状态
+      isFleshing: false, // 是否在刷新
       deviceId: '',
+      saId: '', // saId
+      token: '', // 用户token
       stateId: 1,
       isLock: false, // 是否正在操作，正在操作时，状态推送不改变
       lastTime: null,
-      single: {
-        isOn: false,
-        name: '开关'
+      switchList: [],
+      targetId: null,
+      switchInfo: {
+        type: 'info',
+        instance_id: 2,
+        attributes: [
+          {
+            attribute: 'version',
+            val: '1.0.2',
+            val_type: 'string'
+          }
+        ]
       },
-      doubleList: [
-        {
-          isOn: false,
-          name: '左键'
-        },
-        {
-          isOn: true,
-          name: '右键'
-        }
-      ],
-      thirdList: [
-        {
-          isOn: false,
-          name: '左键'
-        },
-        {
-          isOn: false,
-          name: '中键'
-        },
-        {
-          isOn: true,
-          name: '右键'
-        }
-      ]
+      identity: ''
     }
   },
   methods: {
+    // 刷新
+    reflesh() {
+      this.isFleshing = true
+      this.getDeviceState()
+    },
     // 获取设备初始值
     getDeviceState() {
+      this.loading = true
+      this.stateId = Number(`1${Date.now()}`)
       // 获取初始值
+      this.ws.send({
+        domain: 'zhiting',
+        id: this.stateId,
+        service: 'get_attributes',
+        identity: this.identity,
+        service_data: {
+          device_id: this.deviceId
+        }
+      })
     },
     openLight(item) {
       const temp = item
-      if (item.isOn) {
+      this.targetId = temp.instance_id
+      temp.attributes[0].val = !temp.attributes[0].val
+      if (temp.attributes[0].val) {
         // 开灯
+        this.ws.send(
+          {
+            domain: 'zhiting',
+            id: 1,
+            service: 'set_attributes',
+            identity: this.identity,
+            service_data: {
+              instances: [temp]
+            }
+          }
+        )
+        this.$toast.loading({
+          message: '开灯中...',
+          forbidClick: true,
+        })
+        console.log('开灯')
       } else {
         // 关灯
+        this.ws.send(
+          {
+            domain: 'zhiting',
+            id: -1,
+            service: 'set_attributes',
+            identity: this.identity,
+            service_data: {
+              instances: [temp]
+            }
+          }
+        )
+        this.$toast.loading({
+          message: '关灯中...',
+          forbidClick: true,
+        })
+        console.log('关灯')
       }
-      temp.isOn = !temp.isOn
     },
     // 处理ws信息
     handleMessage(data) {
+      this.$toast.clear()
       const msgJson = JSON.parse(data)
       // 初始化设备信息
-      console.log(msgJson)
+      if (msgJson.id === this.stateId) {
+        setTimeout(() => {
+          this.isFleshing = false
+        }, 1000)
+        if (!msgJson.result) {
+          return
+        }
+        this.loading = false
+        let obj = {}
+        const arr = []
+        const list = msgJson.result.instances || []
+        list.forEach((item) => {
+          const itemType = item
+          itemType.attributes.filter(x => x.attribute === 'power')
+          if (itemType.type === 'switch') {
+            arr.push(itemType)
+          } else {
+            obj = itemType
+          }
+        })
+        this.switchInfo = obj
+        this.switchList = arr
+      } else if (msgJson.id === 1) {
+        if (msgJson.success) {
+          this.$toast.success('开关已开启')
+        } else {
+          this.switchList.forEach((item) => {
+            if (item.instance_id === this.targetId) {
+              item.attributes[0].val = !item.attributes[0].val
+            }
+          })
+          this.$toast.fail('开启失败')
+        }
+      } else if (msgJson.id === -1) {
+        if (msgJson.success) {
+          this.$toast.success('开关已关闭')
+        } else {
+          this.switchList.forEach((item) => {
+            if (item.instance_id === this.targetId) {
+              item.attributes[0].val = !item.attributes[0].val
+            }
+          })
+          this.$toast.fail('关闭失败')
+        }
+      } else if (msgJson.id === 2) {
+        this.$bus.$emit('handleMessage', msgJson)
+      }
     },
     // 浏览器地址转化
     getUrlParams(url) {
@@ -130,13 +239,39 @@ export default {
         obj[key] = decodeURIComponent(value)
       })
       return obj
-    }
+    },
+    // 固件升级
+    handleUpdate() {
+      this.$refs.menu.handleUpdate()
+    },
+    // 执行升级
+    update() {
+      this.ws.send({
+        domain: 'zhiting',
+        id: 2,
+        service: 'set_attributes',
+        identity: this.identity,
+        service_data: {
+          instances: {
+            type: 'info',
+            instance_id: 2,
+            attributes: [
+              {
+                attribute: 'version',
+                val: '1.0.2',
+                val_type: 'string'
+              }
+            ]
+          }
+        }
+      })
+    },
   },
   created() {
     // 生成连接
     const self = this
     this.ws = new Socket({
-      url: 'ws://192.168.0.84:8088/ws',
+      url: 'ws://192.168.0.188:8088/ws',
       onOpen() {
         self.getDeviceState()
       },
@@ -148,6 +283,12 @@ export default {
     const { search, href } = window.location
     const params = search ? this.getUrlParams(search) : this.getUrlParams(href)
     this.deviceId = params.device_id
+    // 接收bus事件
+    this.$bus.$on('update', this.update)
+    const { query } = this.$route
+    if (query.identity) {
+      this.identity = Number(query.identity)
+    }
   }
 }
 </script>
@@ -195,7 +336,7 @@ export default {
 }
 .switch-on {
   position: relative;
-  background: linear-gradient(#$bgColor;, #E2E6F0);
+  background: linear-gradient(#F1F4FC, #E2E6F0);
   margin-top: 0.3rem;
   box-shadow: 0 -0.3rem 0 0 #CFD6E0;
   border-radius: 0.2rem;
@@ -226,7 +367,7 @@ export default {
 }
 .switch-off {
   position: relative;
-  background: linear-gradient(#E2E6F0, #$bgColor;);
+  background: linear-gradient(#E2E6F0, #F1F4FC);
   box-shadow: 0 0.3rem 0 0 #CFD6E0;
   border-radius: 0.2rem;
   .light {
@@ -258,5 +399,25 @@ export default {
   padding-top: 0.47rem;
   font-size: 0.28rem;
   color: #94A5BE;
+}
+.condition-item{
+  position: relative;
+  display: flex;
+  align-items: center;
+  padding: .3rem .3rem;
+  overflow: hidden;
+  background-color: #fff;
+  border-bottom: 1px solid #EEEEEE;
+  cursor: pointer;
+  .item-name{
+    flex: 1;
+  }
+  .item-desc{
+    font-weight: 500;
+    color: #94A5BE;
+  }
+  .revise{
+    width: .4rem;
+  }
 }
 </style>

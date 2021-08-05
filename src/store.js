@@ -10,6 +10,7 @@ export default new Vuex.Store({
     area: {}, // 家庭信息
     token: '', // 登录的token
     isApp: false, // 判断是否在app内
+    isInsert: false, // 判断是否是iframe嵌入
     permissions: {} // 用户权限
   },
   getters: {
@@ -18,7 +19,8 @@ export default new Vuex.Store({
     area: state => state.area,
     token: state => state.token,
     permissions: state => state.permissions,
-    isApp: state => state.isApp
+    isApp: state => state.isApp,
+    isInsert: state => state.isInsert
   },
   mutations: {
     setWebsocket(state, ws) {
@@ -38,6 +40,9 @@ export default new Vuex.Store({
     },
     setIsApp(state, isApp) {
       state.isApp = isApp
+    },
+    setIsInsert(state, isInsert) {
+      state.isInsert = isInsert
     }
   },
   actions: {
@@ -58,6 +63,9 @@ export default new Vuex.Store({
     },
     setIsApp({ commit }, payload) {
       commit('setIsApp', payload)
+    },
+    setIsInsert({ commit }, payload) {
+      commit('setIsInsert', payload)
     }
   },
 })

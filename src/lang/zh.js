@@ -2,7 +2,7 @@ export const global = {
   home: '家居',
   scene: '场景',
   mine: '我的',
-  loaing: '加载中',
+  loading: '加载中',
   all: '全部',
   save: '保存',
   saving: '保存中...',
@@ -10,6 +10,8 @@ export const global = {
   saveSuccess: '保存成功',
   editSuccess: '编辑成功',
   delSuccess: '删除成功',
+  traSuccess: '转移成功',
+  delSuccessChecked: '已删除家庭，同时删除智汀家庭云盘存储的文件',
   add: '添加',
   del: '删除',
   update: '更新',
@@ -31,7 +33,13 @@ export const global = {
   month: '月',
   day: '日',
   hour: '时',
-  minute: '分'
+  minute: '分',
+  tra: '转移拥有者',
+  copy: '复制',
+  loadingVerify: '正在生成...',
+  powerName: '开关',
+  colorTempName: '色温',
+  brightnessName: '亮度'
 }
 
 export const home = {
@@ -42,12 +50,21 @@ export const home = {
 
 export const owner = {
   position: '家庭/公司',
+  pan: '智汀家庭网盘',
   support: '支持品牌',
   platform: '第三方平台',
   lang: '语言',
   sheetTitle: '切换语言',
   zh: '中文',
-  en: '英文'
+  en: '英文',
+  powerTitle: '权限管理',
+  certificate: '找回用户凭证',
+  certificateTip: '用户凭证是访问智慧中心的密钥，请选择是否允许成员通过云端找回凭证。',
+  certificateTitle1: '允许找回',
+  certificateDesc1: '成员可以在任何手机/平板连接智慧中心',
+  certificateTitle2: '不允许找回',
+  certificateDesc2: '成员更换手机/平板或卸载APP后无法再次连接',
+  certificateSetTip: '您可以到专业版-家居-智慧中心修改已选择项'
 }
 
 export const discover = {
@@ -73,6 +90,7 @@ export const areadetail = {
   name: '名称',
   area: '房间/区域',
   code: '二维码',
+  verify: '验证码',
   role: '角色',
   quit: '退出家庭',
   member: '成员',
@@ -91,7 +109,10 @@ export const areadetail = {
   timeTip: '10分钟内有效，请扫码加入',
   saveTip: '保存至相册',
   tapTip: '长按保存至相册',
-  joinTip: '邀请您加入'
+  joinTip: '邀请您加入',
+  creat: '生成',
+  effective: '验证码有效时间为10分钟'
+
 }
 
 export const locationmanage = {
@@ -133,11 +154,11 @@ export const locationsetting = {
 export const login = {
   login: '登录',
   logoTip: '智汀账号登录',
-  authTip: '登录后将会访问你的智汀账号信息和设备控制权',
+  authTip: '登录后将会访问你的智汀账号信息',
   phone: '手机号',
   phonePlaceHolder: '请输入手机号',
   password: '密码',
-  passwordPlaceHolder: '请输入密码（6-20位，包含字母和数字）',
+  passwordPlaceHolder: '请输入密码',
   auth: '授权登录',
   phoneEmptyTip: '请输入手机号',
   phoneErr: '手机号码有误',
@@ -148,7 +169,21 @@ export const login = {
   profession: '专业版',
   account: '用户名',
   accountPlaceholder: '请输入用户名',
-  success: '登录成功'
+  success: '登录成功',
+  authStep1: '账号登录',
+  authStep2: '绑定',
+  authTip2: '绑定后将会访问你的智汀账号设备控制权',
+  authBindArea: '绑定家庭',
+  authBindPlaceholder: '请选择需要绑定的家庭',
+  authVerify: '验证码',
+  authVerifyPlaceholder: '请输入验证码',
+  authTip3: '验证码由家庭拥有者到智汀家庭云APP-我的-家庭/公司-对应家庭中生成',
+  authBind: '绑定',
+  authBinded: '（已被绑定）',
+  welcome: '欢迎加入智汀家庭网盘',
+  agree1_1: '同意将智汀家庭云（',
+  agree1_2: '）的以下信息授权给智汀家庭云盘',
+  panAuth: '确认授权'
 }
 
 export const branddetail = {
@@ -176,8 +211,10 @@ export const brandsupport = {
   plugin: '个插件'
 }
 
-export const devicedetail = {
-  title: '设备详情'
+export const deviceDetail = {
+  title: '设备详情',
+  update: '固件升级',
+  power: '权限管理'
 }
 
 export const devicemanage = {
@@ -364,6 +401,14 @@ export const sceneGuide = {
   create: '去创建场景',
 }
 
+export const credentialsGuide = {
+  title: '如何设置找回用户凭证',
+  tip: '“当前终端无凭证”是因为您更换了手机/平板登录或卸载了APP，为了您的家庭信息安全进行的凭证验证。家庭拥有者可通过以下路径进行设置找回用户凭证：',
+  stepTitle1: '1.登录专业版进入智慧中心详情',
+  stepTitle2: '2.选择权限管理-找回用户凭证',
+  stepTitle3: '3.更改选择，保存'
+}
+
 export const effectiveTime = {
   allDay: '全天',
   period: '时间段',
@@ -401,7 +446,22 @@ export const condition = {
   leftButton: '左键',
   middleButton: '中键',
   rightButton: '右键',
-  rear: '后'
+  rear: '后',
+  curtainTitle: '窗帘状态',
+  curtainState: '开启状态',
+  curtainOpen: '打开窗帘',
+  curtainClose: '关闭窗帘',
+  curtianPercent: '打开窗帘百分比'
 }
 
-export default {}
+export const transferOwner = {
+  title: '转移拥有者',
+  tips: '家庭拥有者有家庭的最高权限并且可以删除家庭，你可以转移拥有者角色给成员，转移后你的角色将变更为管理者。',
+  headerText: '选择成员将拥有者角色转移给他：'
+}
+
+export const deviceAttr = {
+  power: '开关',
+  templature: '色温',
+  brightness: '亮度'
+}

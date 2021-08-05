@@ -19,7 +19,7 @@
         v-for="(item, index) in opList"
         :key="index"
         class="cell"
-        :class="{ 'delay': item.action === 'delay' }"
+        :class="{ 'delay': item.attribute === 'delay' }"
         @click="handleOp(item, index)">
         <p class="op-name one-line">{{ item.name }}</p>
         <div class="cell-right">
@@ -47,26 +47,26 @@
       :initVal="currentSwitch"
       @on-change="handleSwitch"
       :title="$t('condition.switch')"/>
-    <!-- 亮度选择 -->
-    <LightPopup
-      v-model="lightShow"
+    <!-- 窗帘控制选择 -->
+    <CurtainPopup
+      v-model="curtainShow"
+      :needSwitch="!isCondition"
+      :initVal="currentCurtain"
+      @on-change="handleCurtain"
+      :title="$t('condition.curtainTitle')"/>
+    <!-- 百分比选择 -->
+    <PercentagePopup
+      v-model="percentShow"
       :needCondition="isCondition"
       :initCondition="initCondition"
-      :initVal="currentLight"
-      @on-confirm="handleLight"
-      :title="$t('condition.brightness')"/>
-    <!-- 色温选择 -->
-    <LightPopup
-      v-model="tempShow"
-      :needCondition="isCondition"
-      :initCondition="initCondition"
-      :initVal="currentTemp"
-      @on-confirm="handleTemp"
-      :title="$t('condition.temperature')"
-      :min="3000"
-      :max="5700"
-      active-color="transparent"
-      inactive-color="linear-gradient(90deg, #FFB06B, #FFD26E 40%, #7ECFFC)"/>
+      :initVal="currentPercent"
+      @on-confirm="handlePercent"
+      :title="percentTitle"
+      :tipWord="tipWord"
+      :activeColor="activeColor"
+      :inactiveColor="inactiveColor"
+      :max="percentMax"
+      :min="percentMin"/>
     <!-- 延时选择 -->
     <TimePicker
       v-model="delayShow"
@@ -76,31 +76,41 @@
   </div>
 </template>
 <script>
+import { getAttr } from '@/config/deviceAttr'
 import TimePicker from '@/components/TimePicker.vue'
 import SwitchPopup from './components/SwitchPopup.vue'
-import LightPopup from './components/LightPopup.vue'
+import CurtainPopup from './components/CurtainPopup.vue'
+import PercentagePopup from './components/PercentagePopup.vue'
 
 export default {
   name: 'conditionsDevice',
   components: {
     SwitchPopup,
-    LightPopup,
+    CurtainPopup,
+    PercentagePopup,
     TimePicker
   },
   data() {
     return {
       loading: false,
       switchShow: false,
-      lightShow: false,
-      tempShow: false,
+      curtainShow: false, // 窗帘控制显示
+      percentShow: false, // 百分比控制显示
       delayShow: false,
       canNext: false,
       operation: 'condition', // 操作类型 condition 触发条件 execution 执行条件
       currentIndex: 0,
       currentSwitch: '', // 当前开关状态
+      currentCurtain: '', // 当前窗帘状态
       initCondition: '', // 当前操作符
-      currentLight: 10, // 当前亮度值
-      currentTemp: 0, // 当前色温值
+      currentPercent: 0, // 当前百分比值
+      percentTitle: '', // 百分比弹窗标题
+      tipWord: '', // 提示文案
+      activeColor: '', // 百分比激活颜色
+      inactiveColor: '', // 百分比底部颜色
+      percentMax: 0, // 百分比最大值
+      percentMin: 0, // 百分比最大值
+      currentAttr: {}, // 当前控制属性
       currentTime: 0, // 当前时间
       opList: [], // 用户操作列表
       deviceId: '', // 设备id
@@ -133,7 +143,7 @@ export default {
       handler(list) {
         let result = false
         list.forEach((item) => {
-          if (item.action !== 'delay' && item.chose.value) {
+          if (item.attribute !== 'delay' && item.chose.value) {
             result = true
           }
         })
@@ -155,7 +165,8 @@ export default {
         }
         this.deviceInfo = res.data.device_info
         const list = []
-        this.deviceInfo.actions.forEach((item) => {
+        this.deviceInfo.attributes.forEach((item) => {
+          item.name = getAttr(item.attribute)
           const obj = Object.assign({}, item)
           obj.chose = {}
           list.push(obj)
@@ -164,7 +175,7 @@ export default {
         // 判断是否是执行条件
         if (this.operation === 'execution') {
           const obj = {
-            action: 'delay',
+            attribute: 'delay',
             name: this.$t('condition.delay'),
             chose: {}
           }
@@ -186,32 +197,42 @@ export default {
       const { index } = this.query
       if (this.isModify) {
         if (this.isCondition) {
-          const conditionItem = this.conditionList[index].condition_item
+          const conditionAttr = this.conditionList[index].condition_attr
           this.opList.forEach((item) => {
-            if (item.action === conditionItem.action) {
+            if (item.attribute === conditionAttr.attribute) {
               item.chose = {
-                value: conditionItem.action_val,
-                name: `${conditionItem.action_val}%`,
-                op: conditionItem.operator
+                max: conditionAttr.max,
+                min: conditionAttr.min,
+                value: conditionAttr.val,
+                name: `${this.$methods.getPercent(conditionAttr.max, conditionAttr.min, conditionAttr.val)}%`,
+                op: conditionAttr.operator
               }
             }
           })
         } else {
           const task = this.taskList[index] || {}
-          const taskDevices = task.scene_task_devices || []
+          const taskDevices = task.attributes || []
           this.opList.forEach((item) => {
             taskDevices.forEach((dev) => {
-              if (item.action === dev.action) {
-                const name = dev.action === 'switch' ? map[dev.action_val] : `${dev.action_val}%`
-                item.chose = {
-                  value: dev.action_val,
-                  name
+              if (item.attribute === dev.attribute) {
+                if (dev.attribute === 'power') {
+                  item.chose = {
+                    value: dev.val,
+                    name: map[dev.val]
+                  }
+                } else {
+                  item.chose = {
+                    max: dev.max,
+                    min: dev.min,
+                    value: dev.val,
+                    name: `${this.$methods.getPercent(dev.max, dev.min, dev.val)}%`
+                  }
                 }
               }
             })
           })
           // 延时
-          const currentIndex = this.opList.findIndex(item => item.action === 'delay')
+          const currentIndex = this.opList.findIndex(item => item.attribute === 'delay')
           this.currentIndex = currentIndex
           if (task.delay_seconds) {
             this.handleDelay(task.delay_seconds)
@@ -227,18 +248,65 @@ export default {
     },
     handleOp(item, index) {
       this.currentIndex = index
-      if (item.action === 'switch') {
-        this.currentSwitch = item.chose.value
+      if (item.attribute === 'power') {
+        // 开关
+        this.currentSwitch = `${item.chose.value}`
         this.switchShow = true
-      } else if (item.action === 'set_bright') {
-        this.currentLight = item.chose.value
+      } else if (item.attribute === 'brightness') {
+        // 亮度
+        this.percentTitle = this.$t('condition.brightness')
+        this.tipWord = ''
+        this.activeColor = 'linear-gradient(to right, #FEBF32, #FFB06B)'
+        this.inactiveColor = '#f1f4fc'
+        this.currentAttr = {
+          max: item.max,
+          min: item.min,
+          attribute: 'brightness',
+        }
+        this.percentMax = item.max
+        this.percentMin = item.min
+        this.currentPercent = item.chose.value ? item.chose.value : item.min
         this.initCondition = item.chose.op || '='
-        this.lightShow = true
-      } else if (item.action === 'set_color_temp') {
-        this.currentTemp = item.chose.value
+        this.percentShow = true
+      } else if (item.attribute === 'color_temp') {
+        // 色温
+        this.percentTitle = this.$t('condition.temperature')
+        this.tipWord = ''
+        this.activeColor = 'transparent'
+        this.inactiveColor = 'linear-gradient(90deg, #FFB06B, #FFD26E 40%, #7ECFFC)'
+        this.currentAttr = {
+          max: item.max,
+          min: item.min,
+          attribute: 'color_temp',
+        }
+        this.percentMax = item.max
+        this.percentMin = item.min
+        this.currentPercent = item.chose.value ? item.chose.value : item.min
         this.initCondition = item.chose.op || '='
-        this.tempShow = true
-      } else if (item.action === 'delay') {
+        this.percentShow = true
+      } else if (item.attribute === 'curtain_postion') {
+        // 如果是执行任务
+        if (!this.isCondition) {
+          this.currentCurtain = item.chose.value
+          this.curtainShow = true
+        } else {
+          // 窗帘位置
+          this.percentTitle = this.$t('condition.curtainTitle')
+          this.tipWord = this.$t('condition.curtainState')
+          this.activeColor = '#2da3f6'
+          this.inactiveColor = '#f1f4fc'
+          this.currentAttr = {
+            max: item.max,
+            min: item.min,
+            attribute: 'curtain_postion',
+          }
+          this.percentMax = item.max
+          this.percentMin = item.min
+          this.currentPercent = item.chose.value ? item.chose.value : item.min
+          this.initCondition = item.chose.op || '='
+          this.percentShow = true
+        }
+      } else if (item.attribute === 'delay') {
         if (!this.isCondition) {
           this.currentTime = item.chose.value
         }
@@ -290,6 +358,21 @@ export default {
       this.$methods.setSession('conditionList', JSON.stringify(this.conditionList))
       this.toCreatScene()
     },
+    // 窗帘选择处理
+    handleCurtain(item) {
+      this.curtainShow = false
+      if (item.value === 'percent') {
+        // 弹出百分比选择
+        this.percentTitle = this.$t('condition.curtainTitle')
+        this.activeColor = '#2da3f6'
+        this.inactiveColor = '#f1f4fc'
+        const { value } = this.opList[this.currentIndex].chose
+        this.currentPercent = typeof value === 'number' ? value : 0
+        this.percentShow = true
+      } else {
+        this.opList[this.currentIndex].chose = item
+      }
+    },
     // 开关处理
     handleSwitch(item) {
       this.switchShow = false
@@ -298,11 +381,12 @@ export default {
         const sceneConditions = {
           condition_type: 2,
           device_id: this.deviceId,
-          condition_item: {
-            operator: '=',
-            action: 'switch',
+          operator: '=',
+          condition_attr: {
             attribute: 'power',
-            action_val: `${item.value}`
+            val: item.value,
+            val_type: this.opList[this.currentIndex].val_type,
+            instance_id: this.opList[this.currentIndex].instance_id
           }
         }
         this.handleCondition(sceneConditions)
@@ -310,50 +394,31 @@ export default {
         this.opList[this.currentIndex].chose = item
       }
     },
-    // 亮度选择处理
-    handleLight(val, op) {
-      this.lightShow = false
+    // 百分比选择处理
+    handlePercent(val, op) {
+      this.percentShow = false
       if (this.isCondition) {
         // 保存传输数据
         const sceneConditions = {
           condition_type: 2,
           device_id: this.deviceId,
-          condition_item: {
-            operator: op,
-            action: 'set_bright',
-            attribute: 'brightness',
-            action_val: `${val}`
+          operator: op,
+          condition_attr: {
+            attribute: this.currentAttr.attribute,
+            max: this.opList[this.currentIndex].max,
+            min: this.opList[this.currentIndex].min,
+            val,
+            val_type: this.opList[this.currentIndex].val_type,
+            instance_id: this.opList[this.currentIndex].instance_id
           }
         }
         this.handleCondition(sceneConditions)
       } else {
         const chose = {
+          max: this.currentAttr.max,
+          min: this.currentAttr.min,
           value: val,
-          name: `${val}%`
-        }
-        this.opList[this.currentIndex].chose = chose
-      }
-    },
-    // 处理色温选择
-    handleTemp(val, op) {
-      this.tempShow = false
-      if (this.isCondition) {
-        // 保存传输数据
-        const sceneConditions = {
-          condition_type: 2,
-          device_id: this.deviceId,
-          condition_item: {
-            operator: op,
-            action: 'set_color_temp',
-            attribute: 'color_temp',
-            action_val: `${val}`
-          }
-        }
-        this.handleCondition(sceneConditions)
-      } else {
-        const chose = {
-          value: val,
-          name: `${val}%`
+          name: `${this.$methods.getPercent(this.currentAttr.max, this.currentAttr.min, val)}%`
         }
         this.opList[this.currentIndex].chose = chose
       }
@@ -372,23 +437,38 @@ export default {
       let delay = 0
       const task = []
       this.opList.forEach((item) => {
-        if (item.chose.value && item.action !== 'delay') {
-          const obj = { // type为smart_device时，必须设置
-            device_id: this.deviceId,
-            action: item.action,
-            attribute: item.attr,
-            action_val: `${item.chose.value}`
+        if (item.chose.value && item.attribute !== 'delay') {
+          if (item.attribute === 'power') {
+            const obj = { // type为smart_device时，必须设置
+              device_id: this.deviceId,
+              attribute: item.attribute,
+              val: item.chose.value,
+              instance_id: item.instance_id,
+              val_type: item.val_type
+            }
+            task.push(obj)
+          } else {
+            const obj = { // type为smart_device时，必须设置
+              device_id: this.deviceId,
+              attribute: item.attribute,
+              max: item.max,
+              min: item.min,
+              val: item.chose.value,
+              instance_id: item.instance_id,
+              val_type: item.val_type
+            }
+            task.push(obj)
           }
-          task.push(obj)
         }
-        if (item.action === 'delay') {
+        if (item.attribute === 'delay') {
           delay = item.chose.value || 0
         }
       })
       const sceneTasks = {
         type: 1, // 1:控制设备；2:手动执行;3:开启自动执行;4:关闭自动执行
         delay_seconds: delay, // 可不传，延迟秒数
-        scene_task_devices: task
+        device_id: this.deviceId,
+        attributes: task
       }
       if (delay === 0) {
         // 延迟秒速为0时 删除
@@ -409,7 +489,7 @@ export default {
       this.$methods.setSession('delTaskList', JSON.stringify(this.delTaskList))
       this.$methods.setSession('taskList', JSON.stringify(this.taskList))
       this.toCreatScene()
-    }
+    },
   },
   created() {
     const conditionStr = this.$methods.getSession('conditionList')

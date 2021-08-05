@@ -24,6 +24,11 @@
         <span>{{ $t('owner.position') }}</span>
         <van-icon name="arrow" class="right-icon"/>
       </div>
+      <div class="brand-item" @click="toPan">
+        <img src="../../assets/zhiting-pan-icon.png" class="icon-img"/>
+        <span>{{ $t('owner.pan') }}</span>
+        <van-icon name="arrow" class="right-icon"/>
+      </div>
       <div class="brand-item" @click="toSupport">
         <img src="../../assets/brand-icon.png" class="icon-img"/>
         <span>{{ $t('owner.support') }}</span>
@@ -91,7 +96,7 @@ export default {
     }
   },
   computed: {
-    ...mapGetters(['area', 'userInfo']),
+    ...mapGetters(['isApp', 'area', 'userInfo']),
     langList() {
       return [
         {
@@ -144,6 +149,17 @@ export default {
         name: 'areaDetail',
         query: this.area
       })
+    },
+    // 智汀网盘
+    toPan() {
+      // 智汀网盘地址，目前暂时写本地地址
+      const lang = this.$methods.getStore('lang')
+      const href = `http://192.168.0.123:9010/#/?from=zhiting&lang=${lang}`
+      if (this.isApp) {
+        window.location.href = href
+      } else {
+        window.open(href, '_blank')
+      }
     },
     toSupport() {
       this.$router.push({

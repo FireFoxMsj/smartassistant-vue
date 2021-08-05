@@ -9,7 +9,7 @@
       <template #left>
         <van-icon name="arrow-left" color="#3F4663"/>
       </template>
-      <template #right v-if="!loading">
+      <template #right v-if="false">
         <span class="add-plugin" @click="uploadShow = true">{{ $t('brandsupport.addPlugin') }}</span>
       </template>
     </van-nav-bar>
@@ -26,7 +26,8 @@
           <BrandItem
             v-for="brand in brandList"
             :key="brand.id"
-            :brand="brand"></BrandItem>
+            :brand="brand"
+            @onClick="handelClick"></BrandItem>
         </div>
       </div>
       <!--搜索面板-->
@@ -70,6 +71,7 @@
   </div>
 </template>
 <script>
+import { mapGetters } from 'vuex'
 import BrandItem from './components/BrandItem.vue'
 
 export default {
@@ -79,12 +81,16 @@ export default {
   },
   data() {
     return {
+      currentBrand: {},
       brandList: [],
       keyword: '',
       searchShow: false,
       uploadShow: false,
       loading: false
     }
+  },
+  computed: {
+    ...mapGetters(['websocket'])
   },
   methods: {
     // 初始化品牌列表
@@ -100,7 +106,10 @@ export default {
           return
         }
         const { brands } = res.data
-        this.brandList = brands
+        this.brandList = brands.map((item) => {
+          item.isInstall = false
+          return item
+        })
       })
     },
     onClickLeft() {
@@ -108,10 +117,45 @@ export default {
     },
     onCancel() {
       this.searchShow = false
+    },
+    // 处理列表点击
+    handelClick(brand) {
+      this.currentBrand = brand
     }
   },
   created() {
     this.initList()
+  },
+  mounted() {
+    this.websocket.onmessage((data) => {
+      // 回调是否成功
+      const msgJson = JSON.parse(data)
+      const { success } = msgJson
+      if (!success) {
+        return
+      }
+      let isFinish = true
+      this.currentBrand.plugins.forEach((plugin) => {
+        // 如果是添加
+        if (msgJson.id === plugin.installId) {
+          plugin.is_added = true
+          plugin.is_newest = true
+        }
+        // 如果是更新
+        if (msgJson.id === plugin.updateId) {
+          plugin.is_newest = true
+        }
+        // 全部操作是否完成
+        if (!plugin.is_added || !plugin.is_newest) {
+          isFinish = false
+        }
+      })
+      if (isFinish) {
+        this.currentBrand.isInstall = false
+        this.currentBrand.is_added = true
+        this.currentBrand.is_newest = true
+      }
+    })
   }
 }
 </script>

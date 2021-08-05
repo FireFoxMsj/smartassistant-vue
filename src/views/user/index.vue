@@ -29,7 +29,7 @@
           </p>
         </div>
       </div>
-      <div v-if="!isApp" class="quit-btn-placeholder">
+      <div v-if="!isApp && !isInsert" class="quit-btn-placeholder">
         <div class="quit-btn-box">
           <button class="quit-btn" @click="logout">
             退出登录
@@ -68,7 +68,7 @@ export default {
     }
   },
   computed: {
-    ...mapGetters(['isApp', 'websocket'])
+    ...mapGetters(['isApp', 'websocket', 'isInsert'])
   },
   methods: {
     ...mapActions(['setToken']),

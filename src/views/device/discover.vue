@@ -76,7 +76,7 @@ export default {
       // 发送发现指令
       this.msgId = Date.now()
       this.websocket.send({
-        domain: 'yeelight',
+        domain: 'plugin',
         id: this.msgId,
         service: 'discover'
       })

@@ -36,6 +36,7 @@
 <script>
 import { mapGetters, mapActions } from 'vuex'
 import Socket from 'ws-plugin'
+import { getRemote } from '../config/index'
 
 const homeIconActive = require('./assets/home-active.png')
 const homeIcon = require('./assets/home.png')
@@ -99,7 +100,8 @@ export default {
       'setToken',
       'setUserInfo',
       'setPermissions',
-      'setIsApp']),
+      'setIsApp',
+      'setIsInsert']),
     menuChange(menu) {
       if (menu === 'device') {
         this.$router.push({
@@ -139,7 +141,19 @@ export default {
     // 登录拦截
     LoginFilter() {
       // 不需要登录的白名单
-      const whiteList = ['thirdPlatform', 'thirdExplain', 'professionLogin']
+      const whiteList = [
+        'thirdPlatform',
+        'thirdExplain',
+        'professionLogin',
+        'authStepOne',
+        'authStepTwo'
+      ]
+      if (whiteList.includes(this.$route.name)) {
+        this.isAreaReady = true
+        this.isPermissionReady = true
+        this.isWsReady = true
+        return
+      }
       const token = this.$methods.getStore('token')
       const userId = this.$methods.getStore('userId')
       if (token && userId) {
@@ -153,15 +167,13 @@ export default {
         this.isPermissionReady = true
         this.isWsReady = true
         // 需要登录的页面就拦截
-        if (!whiteList.includes(this.$route.name)) {
-          const backUrl = window.location.href
-          this.$router.replace({
-            name: 'professionLogin',
-            query: {
-              backUrl
-            }
-          })
-        }
+        const backUrl = window.location.href
+        this.$router.replace({
+          name: 'professionLogin',
+          query: {
+            backUrl
+          }
+        })
       }
     },
     // 获取用户信息
@@ -175,6 +187,8 @@ export default {
         }
         const userInfo = {
           user_id: res.data.user_id,
+          nickname: res.data.nickname,
+          is_owner: res.data.is_owner,
           is_creator: res.data.is_creator
         }
         this.setUserInfo(userInfo)
@@ -204,12 +218,24 @@ export default {
       // 测试建立一个websocket，保存全局的ws对象
       this.isWsReady = false
       this.ws = new Socket({
-        url: `ws://192.168.0.84:8088/ws?token=${this.token}`
+        url: `${getRemote()}?token=${this.token}`
       })
       this.setWebsocket(this.ws)
       setTimeout(() => {
         this.isWsReady = true
       })
+    },
+    // 浏览器地址转化
+    getUrlParams(url) {
+      const str = url.substr(url.indexOf('?') + 1)
+      const obj = {}
+      const arr = str.split('&')
+      arr.forEach((item) => {
+        const param = item.split('=')
+        const [key, value] = param
+        obj[key] = decodeURIComponent(value)
+      })
+      return obj
     }
   },
   mounted() {
@@ -218,10 +244,15 @@ export default {
     this.active = this.$route.name
   },
   created() {
+    const { href } = window.location
+    const params = this.getUrlParams(href)
     // 初始化语言
     const lang = this.$methods.getStore('lang')
     if (lang) {
       this.$i18n.locale = lang
+    } else {
+      // 默认设置中文
+      this.$methods.setStore('lang', 'zh')
     }
     // app内嵌入
     if (this.$methods.isApp()) {
@@ -239,6 +270,16 @@ export default {
           this.initData()
         }
       })
+    } else if (params.from === 'demo') {
+      // 写死一个token
+      this.setToken('MTYyMjE2ODMxMHxOd3dBTkVKRVVsRlpTRFpEVDBwT1NFTkNOa0ZSVDAxWVFWcEtNMFpLVGs1Q1VGWXpOakpUVUVNeU1rRlVOa2hWTTFoRlZqZEdUa0U9fKGXhfMJH44wwjtFn-gHdWE_A6-WiDtaLODGsmLfDUIV')
+      const userInfo = {
+        user_id: 2
+      }
+      this.setIsInsert(true)
+      // this.LoginFilter()
+      this.setUserInfo(userInfo)
+      this.initData()
     } else {
       // 判断登录 分为app内嵌 和 浏览器登录
       this.LoginFilter()

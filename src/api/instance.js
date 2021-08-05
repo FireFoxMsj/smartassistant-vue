@@ -3,9 +3,10 @@ import qs from 'qs'
 import { Toast } from 'vant'
 import store from '../store'
 import i18n from '../lang/index'
-import * as $methods from '../utils/common'
-import router from '../router'
+// import * as $methods from '../utils/common'
+// import router from '../router'
 import Bus from '../bus/index'
+import { LoginTip } from '../components/LoginTip/index'
 
 // 怎加一个普通的axios
 const commonAx = axios.create({
@@ -44,14 +45,15 @@ const commonBase = (reqAxios, type, url, params) => new Promise((resolve, reject
   commonItr(reqAxios, type, url, params)
     .then((response) => {
       const { data } = response
-      if (data.status === 13) {
+      if (data.status === 5012) {
         // 登录拦截
-        $methods.default.setStore('token', '')
-        store.commit('setToken', '')
-        router.replace({
-          name: 'professionLogin'
-        })
-      } else if (data.status === 10) {
+        LoginTip.show(store.state.area.name)
+        // $methods.default.setStore('token', '')
+        // store.commit('setToken', '')
+        // router.replace({
+        //   name: 'professionLogin'
+        // })
+      } else if (data.status === 5021) {
         // 没有权限 重新获取权限
         const { userInfo } = store.state
         Bus.$emit('updatePermission', userInfo.user_id)

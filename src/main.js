@@ -34,7 +34,9 @@ import {
   NoticeBar,
   CountDown,
   Sticky,
-  List
+  List,
+  PasswordInput,
+  NumberKeyboard
 } from 'vant'
 
 import i18n from './lang/index' // 多语言
@@ -48,6 +50,7 @@ import store from './store'
 import './styles/index.scss'
 import * as http from './api/http'
 import Bus from './bus/index'
+import 'vant/lib/index.css'
 import '@vant/touch-emulator'
 
 Vue.use(Tabbar)
@@ -85,6 +88,8 @@ Vue.use(Tabbar)
   .use(CountDown)
   .use(Sticky)
   .use(List)
+  .use(PasswordInput)
+  .use(NumberKeyboard)
 
 // 注册全局image组件
 Vue.component('CommonImage', CommonImage)

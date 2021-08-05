@@ -42,7 +42,7 @@
                   :key="item.permission.name"
                   class="role-item one-line"
                   :class="{ 'active': item.allow }"
-                  @click="selectSingle(item)">{{ item.permission.name }}</div>
+                  @click="selectSingle(item)">{{ getPerName(item.permission.name) }}</div>
               </div>
             </div>
           </div>
@@ -52,6 +52,8 @@
   </div>
 </template>
 <script>
+import { getAttr } from '@/config/deviceAttr'
+
 export default {
   name: 'hightLevel',
   props: {
@@ -85,6 +87,9 @@ export default {
   methods: {
     onClickLeft() {
       this.show = false
+    },
+    getPerName(attr) {
+      return getAttr(attr)
     },
     // 样式控制
     wichClass(device) {

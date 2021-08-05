@@ -24,7 +24,7 @@
         @click="addRole(role)"
         class="role-item clearfix">
         <span class="role-item--name one-line">{{ role.name }}</span>
-        <van-icon name="arrow" class="role-item--icon"/>
+        <van-icon v-if="!role.is_manager" name="arrow" class="role-item--icon"/>
       </div>
     </div>
     </template>

@@ -20,7 +20,7 @@
     <!-- 弱网提示 -->
     <WeakNetwork v-if="isWeak" @on-retry="initList()"/>
     <!-- 没有家庭 -->
-    <div v-if="!area.id" class="empty-area">
+    <div v-if="!area.id && !isWeak" class="empty-area">
       <div class="empty-box">
         <img src="../../assets/empty.png"/>
         <p>{{ $t('global.empty') }}</p>
@@ -28,7 +28,7 @@
     </div>
     <!-- 区域导航 -->
     <van-tabs
-      v-show="LocationList.length"
+      v-show="locationList.length"
       v-model="activeLocation"
       sticky
       :background="tabBgColor"
@@ -41,10 +41,10 @@
       @change="handleTabChange"
       class="position">
       <van-tab
-        v-for="area in LocationList"
-        :key="area.id"
-        :name="area.id"
-        :title="area.name">
+        v-for="location in locationList"
+        :key="location.id"
+        :name="location.id"
+        :title="location.name">
         <!-- 请求loaing -->
         <div v-if="loading" class="loading-box">
           <van-loading
@@ -73,13 +73,38 @@
                 class="device-item--img"
                 fit="contain"
                 :src="device.logo_url"/>
+              <button
+                v-if="!device.is_sa && device.hasPermission"
+                class="device-btn"
+                :class="[device.power ? 'device-btn--on' : 'device-btn--off']"
+                @click.stop="operateDevice(device)"></button>
+              </div>
+          </div>
+          <template v-if="false">
+          <div
+            v-for="device in arrDevice"
+            :key="device.id"
+            class="device-item"
+            @click="toDeviceDetail(device)">
+            <div class="clearfix" :class="{ 'outline': !device.isOnline }">
+              <span class="device-item--name one-line float-l">
+                {{ device.name }}
+              </span>
+              <span v-if="!device.isOnline" class="device-item--outline float-l">{{ $t('home.offline') }}</span>
+            </div>
+            <div class="device-row">
+              <CommonImage
+                class="device-item--img"
+                fit="contain"
+                :src="device.logo_url"/>
               <van-button
                 v-if="!device.is_sa && device.hasPermission"
                 class="device-btn"
                 :class="[device.power ? 'device-btn--on' : 'device-btn--off']"
                 @click.stop="operateDevice(device)"></van-button>
-              </div>
+            </div>
           </div>
+          </template>
           <div
             v-if="permissions.add_device"
             class="device-item"
@@ -103,42 +128,14 @@
       </van-tab>
     </van-tabs>
     </template>
-    <!-- 切换场景 -->
-    <div class="search-part">
-      <van-action-sheet
-        v-model="sceneShow"
-        title="切换家庭">
-        <div class="wrap">
-          <van-radio-group
-            v-model="activeArea">
-            <van-cell-group>
-              <van-cell
-                v-for="area in areaList"
-                :key="area.id"
-                clickable
-                @click="areaChange(area)">
-                <template #title>
-                  <p class="title" :class="{ 'active': activeArea === area.id }">
-                    <span class="name one-line float-l">
-                      <van-icon name="wap-home-o" class="home-icon"/>
-                      {{ area.name }}
-                    </span>
-                  </p>
-                </template>
-                <template #right-icon>
-                  <van-radio :name="area.id" checked-color="#2DA3F6"/>
-                </template>
-              </van-cell>
-            </van-cell-group>
-          </van-radio-group>
-        </div>
-      </van-action-sheet>
-    </div>
   </div>
 </template>
 
 <script>
 import { mapGetters } from 'vuex'
+
+const curtain001 = require('../../../plugins/curtain/assets/curtain_001.png')
+const curtain002 = require('../../../plugins/curtain/assets/curtain_002.png')
 
 export default {
   name: 'device',
@@ -148,13 +145,37 @@ export default {
       activeArea: '', // 当前选中家庭
       tabBgColor: 'transparent',
       areaList: [],
-      LocationList: [],
+      locationList: [],
       allDeviceList: [],
       deviceList: [],
       loading: false,
       isWeak: false,
-      sceneShow: false,
-      position: 0
+      position: 0,
+      // 假数据
+      arrDevice: [
+        {
+          id: 11,
+          is_sa: false,
+          location_id: 11,
+          location_name: '卧室窗帘',
+          logo_url: curtain001,
+          name: '卧室窗帘',
+          plugin_id: 'curtain_001',
+          type: 'open',
+          isOnline: true
+        },
+        {
+          id: 13,
+          is_sa: false,
+          location_id: 13,
+          location_name: '卫生间窗帘',
+          logo_url: curtain002,
+          name: '卫生间窗帘',
+          plugin_id: 'curtain_002',
+          type: 'off',
+          isOnline: false
+        }
+      ]
     }
   },
   computed: {
@@ -188,8 +209,8 @@ export default {
           name: this.$t('global.all')
         }
         const { locations } = res.data
-        this.LocationList = locations || []
-        this.LocationList.unshift(all)
+        this.locationList = locations || []
+        this.locationList.unshift(all)
       }).catch(() => {
         this.loading = false
       })
@@ -205,10 +226,9 @@ export default {
         }
         const devices = res.data.devices || []
         devices.forEach((item) => {
-          const temp = item
-          temp.power = false
-          temp.isOnline = false
-          temp.hasPermission = false
+          item.isOnline = true
+          item.power = false
+          item.hasPermission = false
         })
         this.allDeviceList = devices
         this.initLocationDevice(this.activeLocation)
@@ -231,12 +251,9 @@ export default {
       // 获取设备初始状态
       list.forEach((item) => {
         const device = item
-        device.isOnline = true
         device.power = false
         // 发送初始化指令
         this.getDeviceState(device)
-        // 发送权限指令
-        this.getDevicePermission(device)
       })
       this.deviceList = list
     },
@@ -257,29 +274,27 @@ export default {
       // 获取初始值
       device.stateId = this.$methods.getId() - 0
       this.websocket.send({
-        domain: 'yeelight',
         id: device.stateId,
-        type: 'call_service',
-        service: 'state',
-        service_data: {
-          device_id: device.id
-        }
+        domain: device.plugin_id,
+        service: 'get_attributes',
+        identity: device.identity
       })
     },
-    // 获取设备权限
-    getDevicePermission(device) {
-      if (device.is_sa) {
-        // sa设备不需要获取初始设备
-        return
-      }
-      // 获取初始值
-      device.perId = this.$methods.getId() - 0
+    // 发送操作指令
+    sendCommand(device, val) {
       this.websocket.send({
-        domain: 'plugin',
-        id: device.perId,
-        service: 'get_actions',
+        id: 1,
+        domain: device.plugin_id,
+        service: 'set_attributes',
+        identity: device.identity,
         service_data: {
-          device_id: device.id
+          attributes: [
+            {
+              attribute: 'power',
+              instance_id: device.instance_id,
+              val
+            }
+          ]
         }
       })
     },
@@ -290,25 +305,9 @@ export default {
         return
       }
       if (!device.power) {
-        this.websocket.send({
-          domain: 'yeelight',
-          id: 1,
-          service: 'switch',
-          service_data: {
-            device_id: device.id,
-            power: 'on'
-          }
-        })
+        this.sendCommand(device, 'on')
       } else {
-        this.websocket.send({
-          domain: 'yeelight',
-          id: 1,
-          service: 'switch',
-          service_data: {
-            device_id: device.id,
-            power: 'off'
-          }
-        })
+        this.sendCommand(device, 'off')
       }
     },
     discover() {
@@ -344,29 +343,35 @@ export default {
       this.deviceList.forEach((item) => {
         const device = item
         // 初始化设备信息
-        if (msgJson.id === device.stateId && msgJson.result) {
-          const { state } = msgJson.result
-          device.power = state.power === 'on'
-          device.isOnline = state.is_online
-        }
-        // 初始化设备权限
-        if (msgJson.id === device.perId && msgJson.result) {
-          device.hasPermission = msgJson.result.actions.switch && msgJson.result.actions.switch.is_permit
+        if (msgJson.id === device.stateId) {
+          if (!msgJson.success) {
+            item.isOnline = false
+          } else {
+            const { instances } = msgJson.result.device
+            const operation = instances[0]
+            const { attributes } = operation
+            device.instance_id = operation.instance_id
+            item.isOnline = true
+            attributes.forEach((attr) => {
+              if (attr.attribute === 'power') {
+                device.power = attr.val === 'on'
+                // 权限控制
+                device.hasPermission = attr.can_control
+              }
+            })
+          }
         }
       })
       // 设备状态变化
-      if (msgJson.event_type && msgJson.event_type === 'state_changed') {
+      if (msgJson.event_type && msgJson.event_type === 'attribute_change') {
         const { data: changeData } = msgJson
         // 更新设备状态
         this.deviceList.forEach((item) => {
           const device = item
-          if (changeData.device_id === item.id) {
-            const { state } = changeData
-            if (state.power !== undefined) {
-              device.power = state.power === 'on'
-            }
-            if (state.is_online !== undefined) {
-              device.isOnline = state.is_online
+          if (changeData.identity === item.identity) {
+            const { attr } = changeData
+            if (attr.attribute === 'power') {
+              device.power = attr.val === 'on'
             }
           }
         })
@@ -437,13 +442,18 @@ export default {
   vertical-align: middle;
 }
 .device {
-  height: calc(100vh - 50px);
+  height: calc(100vh - 1rem);
   background: $bgColor;
   background-image: url(../../assets/home-bg.png);
   background-size: 100% 100%;
   background-repeat: no-repeat;
   overflow-y: scroll;
-  -webkit-overflow-scrolling: touch
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.device::-webkit-scrollbar{
+  display: none;
 }
 .header {
   position: relative;
@@ -470,6 +480,7 @@ export default {
 .device-list {
   display: flex;
   flex-wrap: wrap;
+  padding-bottom: 0.4rem;
 }
 .device-item {
   position: relative;

@@ -365,7 +365,7 @@ export default {
         timing: 0, // // 1:定时；2：设备状态变化时
         device_id: 0, // condition_type为2时需传
         operator: '=', // ">","<","=";  操作符，condition_type为2时需传
-        condition_item: {}
+        condition_attr: {}
       },
       delConditionList: [], // 删除场景的id
       delTaskList: [], // 删除任务id
@@ -637,15 +637,15 @@ export default {
         return this.$methods.getTime(condition.timing, 'hh:mm:ss')
       }
       if (condition.condition_type === 2) {
-        const item = condition.condition_item || {}
-        if (item.action === 'switch') {
-          return actionMap[item.action_val]
+        const item = condition.condition_attr || {}
+        if (item.attribute === 'power') {
+          return actionMap[item.val]
         }
-        if (item.action === 'set_bright') {
-          return `${this.$t('condition.brightness')}${opMap[item.operator]}${item.action_val}%`
+        if (item.attribute === 'brightness') {
+          return `${this.$t('condition.brightness')}${opMap[condition.operator]}${this.$methods.getPercent(item.max, item.min, item.val)}%`
         }
-        if (item.action === 'set_color_temp') {
-          return `${this.$t('condition.temperature')}${opMap[item.operator]}${item.action_val}%`
+        if (item.attribute === 'color_temp') {
+          return `${this.$t('condition.temperature')}${opMap[condition.operator]}${this.$methods.getPercent(item.max, item.min, item.val)}%`
         }
       }
       return ''
@@ -668,16 +668,16 @@ export default {
         off: this.$t('condition.shutDown'),
         toggle: this.$t('condition.change')
       }
-      if (task.scene_task_devices && task.scene_task_devices.length) {
-        task.scene_task_devices.forEach((item) => {
-          if (item.action === 'switch') {
-            res += actionMap[item.action_val]
+      if (task.attributes && task.attributes.length) {
+        task.attributes.forEach((item) => {
+          if (item.attribute === 'power') {
+            res += actionMap[item.val]
           }
-          if (item.action === 'set_bright') {
-            res += `${this.$t('condition.brightness')}${item.action_val}%`
+          if (item.attribute === 'brightness') {
+            res += `${this.$t('condition.brightness')}${this.$methods.getPercent(item.max, item.min, item.val)}%`
           }
-          if (item.action === 'set_color_temp') {
-            res += `${this.$t('condition.temperature')}${item.action_val}%`
+          if (item.attribute === 'color_temp') {
+            res += `${this.$t('condition.temperature')}${this.$methods.getPercent(item.max, item.min, item.val)}%`
           }
           res += '、'
         })
@@ -742,7 +742,7 @@ export default {
           return
         }
         // 跳转设备触发页
-        const id = task.scene_task_devices[0].device_id
+        const id = task.device_id
         this.saveTempData()
         this.$router.push({
           name: 'conditionsDevice',

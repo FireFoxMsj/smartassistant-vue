@@ -1,19 +1,9 @@
 <template>
   <div class="home">
-    <van-notice-bar
-      v-show="!isOnline"
-      class="notice"
-      color="#F6AE1E"
-      background="#FDF3DF"
-      :scrollable="false"
-      text="当前设备已离线，连接局域网后才能控制此设备">
-      <template #right-icon>
-        <div @click="reflesh" class="notice-right">
-          <van-icon name="replay" :class="{ 'a-rotate': isFleshing }"/>
-          <span>刷新</span>
-        </div>
-      </template>
-    </van-notice-bar>
+    <OfflineNotice
+      :show="!isOnline"
+      :loading="isFleshing"
+      @onReflesh="reflesh"/>
     <div v-show="isOn" class="device">
       <template>
         <img v-if="lightType === 'ceiling17'" src="../assets/led.png">
@@ -22,7 +12,7 @@
       </template>
       <p>{{ deviceName }}</p>
       <van-button
-        v-if="permission.switch.is_permit"
+        v-if="permission.power"
         class="open-btn--on"
         :disabled="!isOnline"
         @click="openLight(false)"></van-button>
@@ -35,16 +25,17 @@
       </template>
       <p>{{ deviceName }}</p>
       <van-button
-        v-if="permission.switch.is_permit"
+        v-if="permission.power"
         class="open-btn--off"
         :disabled="!isOnline"
         @click="openLight(true)"></van-button>
     </div>
-    <div v-if="permission.set_bright.is_permit" class="control">
+    <div v-if="permission.brightness" class="control">
       <p>亮度 {{ light }}%</p>
       <van-slider
         v-model="light"
-        @change="lightChange"
+        :min="lightMin"
+        :max="lightMax"
         @input="inputChange('light')"
         @drag-start="dragStart"
         @drag-end="dragEnd"
@@ -56,11 +47,12 @@
         </template>
       </van-slider>
     </div>
-    <div v-if="permission.set_color_temp.is_permit" class="control mgt60">
+    <div v-if="permission.color_temp" class="control mgt60">
       <p>色温</p>
       <van-slider
         v-model="temperature"
-        @change="temperatureChange"
+        :min="tempMin"
+        :max="tempMax"
         @input="inputChange('temperature')"
         @drag-start="dragStart"
         @drag-end="dragEnd"
@@ -78,23 +70,36 @@
 
 <script>
 import Socket from 'ws-plugin'
+import { getRemote } from '../../../config/index'
+import OfflineNotice from '../../components/OfflineNotice.vue'
 
 export default {
   name: 'home',
+  components: {
+    OfflineNotice
+  },
   data() {
     return {
       ws: null, // websocket对象
       deviceName: '智能灯',
       isOn: false, // 灯是否打开
       light: 0, // 亮度
+      lightMin: 0, // 亮度最小值
+      lightMax: 100, // 亮度最大值
+      tempMin: 0, // 色温最小值
+      tempMax: 100, // 色温最大值
       temperature: 0, // 色温
       isOnline: true, // 设备在线离线状态
       deviceId: '',
+      pluginId: '', // 插件id
+      identity: '', // 设备的唯一标识
+      instanceId: '', // 实例id
+      saId: '', // saId
       token: '', // 用户token
       permission: {
-        set_bright: {},
-        set_color_temp: {},
-        switch: {}
+        brightness: false,
+        color_temp: false,
+        power: false
       }, // 用户权限
       stateId: 1, // 获取状态消息id
       perId: 1, // 获取权限id
@@ -115,58 +120,43 @@ export default {
     // 初始状态
     initData() {
       this.getDeviceState()
-      this.getDevicePermission()
     },
     // 获取设备初始值
     getDeviceState() {
       // 获取初始值
       this.stateId = Number(`1${Date.now()}`)
       this.ws.send({
-        domain: 'yeelight',
         id: this.stateId,
-        type: 'call_service',
-        service: 'state',
-        service_data: {
-          device_id: this.deviceId
-        }
+        domain: this.pluginId,
+        service: 'get_attributes',
+        identity: this.identity
       })
     },
-    // 获取用户操作权限
-    getDevicePermission() {
-      // 获取初始值
-      this.perId = Number(`2${Date.now()}`)
+    // 发送操作指令
+    sendCommand(attribute, val) {
       this.ws.send({
-        domain: 'plugin',
-        id: this.perId,
-        service: 'get_actions',
+        id: 1,
+        domain: this.pluginId,
+        service: 'set_attributes',
+        identity: this.identity,
         service_data: {
-          device_id: this.deviceId
+          attributes: [
+            {
+              attribute,
+              instance_id: this.instanceId,
+              val
+            }
+          ]
         }
       })
     },
     openLight(status) {
       if (status) {
         // 开灯
-        this.ws.send({
-          domain: 'yeelight',
-          id: 1,
-          service: 'switch',
-          service_data: {
-            device_id: this.deviceId,
-            power: 'on'
-          }
-        })
+        this.sendCommand('power', 'on')
       } else {
         // 关灯
-        this.ws.send({
-          domain: 'yeelight',
-          id: 1,
-          service: 'switch',
-          service_data: {
-            device_id: this.deviceId,
-            power: 'off'
-          }
-        })
+        this.sendCommand('power', 'off')
       }
       this.isOn = status
     },
@@ -201,15 +191,7 @@ export default {
         return
       }
       // 调节亮度
-      this.ws.send({
-        domain: 'yeelight',
-        id: 1,
-        service: 'set_bright',
-        service_data: {
-          device_id: this.deviceId,
-          brightness: val
-        }
-      })
+      this.sendCommand('brightness', val)
     },
     // 色温变化
     temperatureChange(val) {
@@ -218,61 +200,64 @@ export default {
         return
       }
       // 调节色温
-      this.ws.send({
-        domain: 'yeelight',
-        id: 1,
-        service: 'set_color_temp',
-        service_data: {
-          device_id: this.deviceId,
-          color_temp: val
-        }
-      })
+      this.sendCommand('color_temp', val)
     },
     // 处理ws信息
     handleMessage(data) {
       const msgJson = JSON.parse(data)
       // 初始化设备信息
-      if (msgJson.id === this.stateId && msgJson.result) {
-        const { state } = msgJson.result
-        this.isOn = state.power === 'on'
-        this.light = state.brightness
-        this.temperature = state.color_temp
-        this.isOnline = state.is_online
+      if (msgJson.id === this.stateId) {
         // 延迟结束刷新动画
         setTimeout(() => {
           this.isFleshing = false
         }, 1000)
+        if (!msgJson.success) {
+          this.isOnline = false
+          return
+        }
+        this.isOnline = true
+        const { instances } = msgJson.result.device
+        const lightBulb = instances.filter(item => item.type === 'light_bulb')
+        const { attributes } = lightBulb[0]
+        this.instanceId = lightBulb[0].instance_id
+        attributes.forEach((attr) => {
+          if (attr.attribute === 'power') {
+            this.isOn = attr.val === 'on'
+            this.permission.power = attr.can_control
+          } else if (attr.attribute === 'color_temp') {
+            this.temperature = attr.val
+            this.tempMin = attr.min
+            this.tempMax = attr.max
+            this.permission.color_temp = attr.can_control
+          } else if (attr.attribute === 'brightness') {
+            this.light = attr.val
+            this.lightMin = attr.min
+            this.lightMax = attr.max
+            this.permission.brightness = attr.can_control
+          }
+        })
         this.isReady = true
       }
-      // 初始化用户权限
-      if (msgJson.id === this.perId && msgJson.result) {
-        this.permission = msgJson.result.actions
-      }
       // 设备状态变化
-      if (msgJson.event_type && msgJson.event_type === 'state_changed') {
+      if (msgJson.event_type && msgJson.event_type === 'attribute_change') {
         const { data: changeData } = msgJson
-        const { state } = changeData
+        const { attr } = changeData
         // 如果正在操作则忽略同步, 开关状态除外
         if (this.isLock) {
-          if (changeData.device_id === this.deviceId) {
-            if (state.power !== undefined) {
-              this.isOn = state.power === 'on'
+          if (changeData.identity === this.identity) {
+            if (attr.attribute === 'power') {
+              this.isOn = attr.val === 'on'
             }
           }
           return
         }
-        if (changeData.device_id === this.deviceId) {
-          if (state.power !== undefined) {
-            this.isOn = state.power === 'on'
-          }
-          if (state.brightness !== undefined) {
-            this.light = state.brightness
-          }
-          if (state.color_temp !== undefined) {
-            this.temperature = state.color_temp
-          }
-          if (state.is_online !== undefined) {
-            this.isOnline = state.is_online
+        if (changeData.identity === this.identity) {
+          if (attr.attribute === 'power') {
+            this.isOn = attr.val === 'on'
+          } else if (attr.attribute === 'color_temp') {
+            this.temperature = attr.val
+          } else if (attr.attribute === 'brightness') {
+            this.light = attr.val
           }
         }
       }
@@ -288,13 +273,24 @@ export default {
         obj[key] = decodeURIComponent(value)
       })
       return obj
+    },
+    // 获取百分比
+    getPercent(max, min, value) {
+      // let res = Number(((value - min) / (max - min) * 100))
+      let res = Math.round(Number(((value - min) / (max - min) * 100)))
+      if (res < 0) {
+        res = 0
+      }
+      return res
     }
   },
   created() {
     // 获取device_id参数
     const { search, href } = window.location
     const params = search ? this.getUrlParams(search) : this.getUrlParams(href)
-    this.deviceId = Number(params.device_id)
+    this.identity = params.identity
+    this.saId = params.sa_id
+    this.pluginId = params.plugin_id || 'yeelight'
     this.lightType = params.model || 'ceiling17'
     this.token = params.token
     if (params.name) {
@@ -303,7 +299,7 @@ export default {
     // 生成连接
     const self = this
     this.ws = new Socket({
-      url: `ws://192.168.0.84:8088/ws?token=${this.token}`,
+      url: `${getRemote()}?token=${this.token}&sa_id=${this.saId}`,
       onOpen() {
         self.initData()
       },
