@@ -80,31 +80,6 @@
                 @click.stop="operateDevice(device)"></button>
               </div>
           </div>
-          <template v-if="false">
-          <div
-            v-for="device in arrDevice"
-            :key="device.id"
-            class="device-item"
-            @click="toDeviceDetail(device)">
-            <div class="clearfix" :class="{ 'outline': !device.isOnline }">
-              <span class="device-item--name one-line float-l">
-                {{ device.name }}
-              </span>
-              <span v-if="!device.isOnline" class="device-item--outline float-l">{{ $t('home.offline') }}</span>
-            </div>
-            <div class="device-row">
-              <CommonImage
-                class="device-item--img"
-                fit="contain"
-                :src="device.logo_url"/>
-              <van-button
-                v-if="!device.is_sa && device.hasPermission"
-                class="device-btn"
-                :class="[device.power ? 'device-btn--on' : 'device-btn--off']"
-                @click.stop="operateDevice(device)"></van-button>
-            </div>
-          </div>
-          </template>
           <div
             v-if="permissions.add_device"
             class="device-item"
@@ -134,9 +109,6 @@
 <script>
 import { mapGetters } from 'vuex'
 
-const curtain001 = require('../../../plugins/curtain/assets/curtain_001.png')
-const curtain002 = require('../../../plugins/curtain/assets/curtain_002.png')
-
 export default {
   name: 'device',
   data() {
@@ -150,32 +122,7 @@ export default {
       deviceList: [],
       loading: false,
       isWeak: false,
-      position: 0,
-      // 假数据
-      arrDevice: [
-        {
-          id: 11,
-          is_sa: false,
-          location_id: 11,
-          location_name: '卧室窗帘',
-          logo_url: curtain001,
-          name: '卧室窗帘',
-          plugin_id: 'curtain_001',
-          type: 'open',
-          isOnline: true
-        },
-        {
-          id: 13,
-          is_sa: false,
-          location_id: 13,
-          location_name: '卫生间窗帘',
-          logo_url: curtain002,
-          name: '卫生间窗帘',
-          plugin_id: 'curtain_002',
-          type: 'off',
-          isOnline: false
-        }
-      ]
+      position: 0
     }
   },
   computed: {
@@ -340,18 +287,18 @@ export default {
     },
     handleMessage(data) {
       const msgJson = JSON.parse(data)
-      this.deviceList.forEach((item) => {
-        const device = item
+      this.deviceList.forEach((device) => {
         // 初始化设备信息
-        if (msgJson.id === device.stateId) {
+        if (msgJson.id && msgJson.id === device.stateId) {
           if (!msgJson.success) {
-            item.isOnline = false
+            device.isOnline = false
           } else {
             const { instances } = msgJson.result.device
-            const operation = instances[0]
+            const types = ['light_bulb', 'outlet']
+            const operation = instances.find(instance => types.includes(instance.type))
             const { attributes } = operation
             device.instance_id = operation.instance_id
-            item.isOnline = true
+            device.isOnline = true
             attributes.forEach((attr) => {
               if (attr.attribute === 'power') {
                 device.power = attr.val === 'on'
@@ -366,9 +313,8 @@ export default {
       if (msgJson.event_type && msgJson.event_type === 'attribute_change') {
         const { data: changeData } = msgJson
         // 更新设备状态
-        this.deviceList.forEach((item) => {
-          const device = item
-          if (changeData.identity === item.identity) {
+        this.deviceList.forEach((device) => {
+          if (changeData.identity === device.identity) {
             const { attr } = changeData
             if (attr.attribute === 'power') {
               device.power = attr.val === 'on'

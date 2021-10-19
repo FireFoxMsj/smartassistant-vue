@@ -12,6 +12,7 @@ export const global = {
   delSuccess: '删除成功',
   traSuccess: '转移成功',
   delSuccessChecked: '已删除家庭，同时删除智汀家庭云盘存储的文件',
+  isDelChecked: '同时删除智汀家庭云盘存储的文件',
   add: '添加',
   del: '删除',
   update: '更新',
@@ -39,7 +40,8 @@ export const global = {
   loadingVerify: '正在生成...',
   powerName: '开关',
   colorTempName: '色温',
-  brightnessName: '亮度'
+  brightnessName: '亮度',
+  uploaderSuccess: '上传成功',
 }
 
 export const home = {
@@ -208,7 +210,8 @@ export const brandsupport = {
   sure: '确定',
   added: '已添加',
   total: '共',
-  plugin: '个插件'
+  plugin: '个插件',
+  acceptZip: '请上传zip格式压缩包'
 }
 
 export const deviceDetail = {
@@ -435,6 +438,9 @@ export const condition = {
   switch: '开关',
   brightness: '亮度',
   temperature: '色温',
+  hue: '色调',
+  saturation: '饱和度',
+  rgb: '色彩',
   delay: '延时',
   turnOn: '打开',
   shutDown: '关闭',
@@ -463,5 +469,8 @@ export const transferOwner = {
 export const deviceAttr = {
   power: '开关',
   templature: '色温',
-  brightness: '亮度'
+  brightness: '亮度',
+  hue: '色调',
+  saturation: '饱和度',
+  rgb: '色彩'
 }

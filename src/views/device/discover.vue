@@ -104,15 +104,61 @@ export default {
       this.$router.go(-1)
     },
     connect(device) {
+      console.log(device)
       if (!this.permissions.add_device) {
         this.$toast(this.$t('global.noPermission'))
         return
       }
       const query = Object.assign({}, device)
       query.area_id = this.areaId
-      this.$router.push({
-        name: 'deviceConnect',
-        query
+      if (device.plugin_id === 'homekit') {
+        this.matchCode(query)
+      } else {
+        this.$router.push({
+          name: 'deviceConnect',
+          query
+        })
+      }
+    },
+    // 获取是否进行home-kit码匹配
+    matchCode(deviceInfo) {
+      // 发送发现指令
+      this.msgId = Date.now()
+      this.websocket.send({
+        domain: 'homekit',
+        id: this.msgId,
+        identity: deviceInfo.identity,
+        service: 'get_attributes'
+      })
+      // 接受消息
+      this.websocket.onmessage((data) => {
+        const msg = JSON.parse(data)
+        if (msg.id === this.msgId) {
+          if (!msg.result) {
+            return
+          }
+          const { instances } = msg.result.device
+          const info = instances.filter(item => item.type === 'info')
+          const { attributes } = info[0]
+          attributes.forEach((attr) => {
+            if (attr.attribute === 'pin') {
+              if (attr.val) {
+                // 跳转至设备详情页
+                this.$router.push({
+                  name: 'deviceConnect',
+                  query: deviceInfo
+                })
+              } else {
+                setTimeout(() => {
+                  this.$router.replace({
+                    name: 'homeKit',
+                    query: deviceInfo
+                  })
+                }, 1000)
+              }
+            }
+          })
+        }
       })
     }
   },

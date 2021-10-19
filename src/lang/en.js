@@ -12,6 +12,7 @@ export const global = {
   delSuccess: 'successfully deleted',
   traSuccess: 'Successfully transferred',
   delSuccessChecked: 'The family has been deleted, and the files stored in ZhiTing family cloud disk have been deleted at the same time',
+  isDelChecked: 'And the files stored in ZhiTing family cloud disk have been deleted at the same time',
   add: 'add',
   del: 'delete',
   update: 'update',
@@ -38,7 +39,8 @@ export const global = {
   loadingVerify: 'Crating verify...',
   powerName: 'Switch',
   colorTempName: 'Color temperature',
-  brightnessName: 'Brightness'
+  brightnessName: 'Brightness',
+  uploaderSuccess: 'Uploaded successfully',
 }
 
 export const home = {
@@ -206,7 +208,8 @@ export const brandsupport = {
   sure: 'determine',
   added: 'added',
   total: 'total',
-  plugin: 'plugin'
+  plugin: 'plugin',
+  acceptZip: 'Please upload the compressed package in zip format'
 }
 
 export const devicedetail = {
@@ -433,6 +436,9 @@ export const condition = {
   switch: 'switch',
   brightness: 'brightness',
   temperature: 'temperature',
+  hue: 'hue',
+  saturation: 'saturation',
+  rgb: 'rgb',
   delay: 'delay',
   turnOn: 'turn on',
   shutDown: 'shut down',
@@ -461,5 +467,8 @@ export const transferOwner = {
 export const deviceAttr = {
   power: 'power',
   templature: 'templature',
-  brightness: 'brightness'
+  brightness: 'brightness',
+  hue: 'hue',
+  saturation: 'saturation',
+  rgb: 'rgb'
 }

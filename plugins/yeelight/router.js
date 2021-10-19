@@ -1,17 +1,19 @@
 import Vue from 'vue'
 import Router from 'vue-router'
-import Home from './views/Home.vue'
 
 Vue.use(Router)
+
+// 路由懒加载
+const load = component => () => import(/* webpackChunkName: "[request]" */ `./views/${component}`)
 
 export default new Router({
   mode: 'hash',
   base: process.env.BASE_URL,
   routes: [
     {
-      path: '/',
-      name: 'home',
-      component: Home,
+      path: '/light',
+      name: 'light',
+      component: load('light/Home.vue'),
     }
   ],
 })

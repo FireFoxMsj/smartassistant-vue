@@ -39,7 +39,7 @@
         <button class="delete-btn" @click="sureShow = true">{{ $t('global.del') }}</button>
       </div>
     </div>
-    <div class="transfer-btn-placeholder" v-if="isOwner&&userInfo.user_id===memberInfo.user_id">
+    <div class="transfer-btn-placeholder" v-if="isOwner&&(userInfo.user_id===memberInfo.user_id)">
         <div class="transfer-btn-box">
           <button class="transfer-btn" @click="goTransferOwner">{{ $t('global.tra') }}</button>
         </div>

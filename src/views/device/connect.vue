@@ -38,6 +38,8 @@
 </template>
 
 <script>
+import { mapGetters } from 'vuex'
+
 export default {
   name: 'deviceConnect',
   data() {
@@ -51,6 +53,7 @@ export default {
     }
   },
   computed: {
+    ...mapGetters(['websocket']),
     rateFixed() {
       return parseInt(this.currentRate, 10)
     }
@@ -107,7 +110,7 @@ export default {
     // 重新扫描
     reScan() {
       this.onClickLeft()
-    }
+    },
   },
   created() {
     this.device = this.$route.query

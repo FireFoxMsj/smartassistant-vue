@@ -443,3 +443,30 @@ export const getScAreaList = (params = {}) => http.g(
   `${scHeader}/areas`,
   params
 )
+
+/**
+ * 获取找回用户凭证的配置
+ @param {}
+ */
+export const userCertificate = (params = {}) => http.g(
+  `${apiHeader}/setting`,
+  params
+)
+
+/**
+ * 设置找回用户凭证
+ @param {}
+ */
+export const setUserCertificate = (params = {}) => http.u(
+  `${apiHeader}/setting`,
+  params
+)
+
+/**
+ * 上传插件
+ @param {}
+ */
+export const uploaderPlugins = params => http.p(
+  `${apiHeader}/plugins`,
+  params
+)

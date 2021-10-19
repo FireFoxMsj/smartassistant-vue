@@ -1,6 +1,7 @@
 <template>
   <div class="device-detail">
     <van-nav-bar
+      v-show="titleShow"
       :title="$t('deviceDetail.title')"
       left-arrow
       :fixed="true"
@@ -39,7 +40,12 @@
       <!--loading模块-->
       <Loading v-show="loading"></Loading>
       <!--嵌入插件详情页-->
-      <iframe v-show="!isSa && !loading" id="insert" class="iframe"></iframe>
+      <iframe
+        v-show="!isSa"
+        id="insert"
+        name="insert"
+        class="iframe"
+        :class="{ 'full-height': !titleShow, 'opacity': loading }"></iframe>
     </div>
   </div>
 </template>
@@ -56,18 +62,9 @@ export default {
       id: '',
       isSa: false,
       loading: false,
+      titleShow: true, // 是否显示标题
       deviceInfo: {},
-      saInfo: {},
-      opList: [
-        {
-          value: 'powerManage',
-          name: this.$t('deviceDetail.power')
-        },
-        {
-          value: 'firmwareUpgrade',
-          name: this.$t('deviceDetail.update')
-        }
-      ]
+      saInfo: {}
     }
   },
   computed: {
@@ -78,6 +75,29 @@ export default {
       }
       return false
     },
+    opList() {
+      let arr = []
+      if (this.userInfo.is_owner) {
+        arr = [
+          {
+            value: 'powerManage',
+            name: this.$t('deviceDetail.power')
+          },
+          {
+            value: 'firmwareUpgrade',
+            name: this.$t('deviceDetail.update')
+          }
+        ]
+      } else {
+        arr = [
+          {
+            value: 'firmwareUpgrade',
+            name: this.$t('deviceDetail.update')
+          }
+        ]
+      }
+      return arr
+    }
   },
   methods: {
     onClickLeft() {
@@ -111,6 +131,13 @@ export default {
           isSa: this.isSa
         }
       })
+    },
+    // 接受消息
+    receiMessage(msg) {
+      if (msg.data.op === 'setTitle') {
+        // 查看通知详情
+        this.titleShow = msg.data.value.isShow
+      }
     }
   },
   mounted() {
@@ -129,7 +156,9 @@ export default {
       return
     }
     const iframe = document.querySelector('#insert')
-    iframe.src = pluginUrl
+    iframe.src = decodeURIComponent(pluginUrl)
+    // 接受子级message
+    window.addEventListener('message', this.receiMessage, false)
     this.loading = true
     iframe.onload = () => {
       this.loading = false
@@ -140,7 +169,13 @@ export default {
 <style lang="scss" scoped>
 .iframe {
   width: 100%;
-  height: calc(100vh - 46px);
+  height: calc(100vh - 0.98rem);
+}
+.full-height {
+  height: calc(100vh - 0.04rem);
+}
+.opacity {
+  opacity: 0;
 }
 .sa-box {
   padding: 0.62rem;

@@ -17,7 +17,7 @@
           v-for="item in setList"
           :key="item.value"
           class="set-item"
-          @click="handleSet(item)">
+          @click="userInfo.is_owner?handleSet(item):''">
           <div class="left">
             <h3 class="title">{{ item.title }}</h3>
             <p class="desc">{{ item.desc }}</p>
@@ -28,17 +28,22 @@
         </div>
       </div>
     </div>
-    <div class="finish-btn-placeholder">
+    <div class="finish-btn-placeholder" v-if="userInfo.is_owner">
       <div class="finish-btn-box">
         <p class="word">{{ $t('owner.certificateSetTip') }}</p>
-        <van-button class="finish-btn">{{ $t('global.finish') }}</van-button>
+        <van-button @click="sure" class="finish-btn">{{ $t('global.finish') }}</van-button>
       </div>
     </div>
   </div>
 </template>
 <script>
+import { mapGetters } from 'vuex'
+
 export default {
   name: 'powerManage',
+  computed: {
+    ...mapGetters(['userInfo']),
+  },
   data() {
     return {
       setList: [
@@ -52,9 +57,14 @@ export default {
           value: 2,
           title: this.$t('owner.certificateTitle2'),
           desc: this.$t('owner.certificateDesc2'),
-          checked: true
+          checked: false
         }
-      ]
+      ],
+      params: {
+        user_credential_found_setting: {
+          user_credential_found: false
+        }
+      }
     }
   },
   methods: {
@@ -66,7 +76,36 @@ export default {
         item.checked = false
       })
       set.checked = true
+      if (set.value === 1) {
+        this.params.user_credential_found_setting.user_credential_found = true
+      } else {
+        this.params.user_credential_found_setting.user_credential_found = false
+      }
+    },
+    getUserCertificate() {
+      this.http.userCertificate().then((res) => {
+        if (res.status !== 0) {
+          return
+        }
+        this.params = res.data || {}
+        if (this.params.user_credential_found_setting.user_credential_found) {
+          this.setList[0].checked = true
+        } else {
+          this.setList[1].checked = true
+        }
+      })
+    },
+    sure() {
+      this.http.setUserCertificate(this.params).then((res) => {
+        if (res.status !== 0) {
+          return
+        }
+        this.$toast(this.$t('global.saveSuccess'))
+      })
     }
+  },
+  created() {
+    this.getUserCertificate()
   }
 }
 </script>

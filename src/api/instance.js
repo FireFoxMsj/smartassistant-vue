@@ -15,7 +15,7 @@ const commonAx = axios.create({
   timeout: 10000,
   headers: {
     'content-type': 'application/json;charset=UTF-8',
-  },
+  }
 })
 
 commonAx.interceptors.request.use((config) => {
@@ -23,6 +23,13 @@ commonAx.interceptors.request.use((config) => {
   const { token } = store.state
   if (token) {
     config.headers['smart-assistant-token'] = token
+  }
+  // 上传接口参数转为 formData
+  if (config.method === 'post') {
+    if (config.url.includes('/plugins')) {
+      // config.headers['content-type'] = 'application/x-www-form-urlencoded;charset=UTF-8'
+      config.headers['content-type'] = 'multipart/form-data'
+    }
   }
   return config
 })

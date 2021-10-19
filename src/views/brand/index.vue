@@ -9,7 +9,7 @@
       <template #left>
         <van-icon name="arrow-left" color="#3F4663"/>
       </template>
-      <template #right v-if="false">
+      <template #right>
         <span class="add-plugin" @click="uploadShow = true">{{ $t('brandsupport.addPlugin') }}</span>
       </template>
     </van-nav-bar>
@@ -59,7 +59,9 @@
           <div class="upload-content">
             <div class="feedback">
               <div>
-                <button class="upload-btn">{{ $t('brandsupport.uploadTitle') }}</button>
+                <van-uploader accept="file/zip" :before-read="beforeRead">
+                  <button class="upload-btn">{{ $t('brandsupport.uploadTitle') }}</button>
+                </van-uploader>
                 <p class="upload-word">{{ $t('brandsupport.uploadContent') }}</p>
               </div>
             </div>
@@ -121,6 +123,27 @@ export default {
     // 处理列表点击
     handelClick(brand) {
       this.currentBrand = brand
+    },
+    // 返回布尔值
+    beforeRead(file) {
+      if (file.type !== 'application/x-zip-compressed') {
+        this.$toast(this.$t('brandsupport.acceptZip'))
+        return
+      }
+      const params = new FormData()
+      params.append('file', file)
+      this.uploader(params)
+    },
+    uploader(params) {
+      this.http.uploaderPlugins(params).then((res) => {
+        if (res.status !== 0) {
+          this.$toast(res.reason)
+          return
+        }
+        this.$toast.success(this.$t('global.uploaderSuccess'))
+        this.uploadShow = false
+        this.initList()
+      })
     }
   },
   created() {

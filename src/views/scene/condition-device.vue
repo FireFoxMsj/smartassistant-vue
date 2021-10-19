@@ -142,7 +142,10 @@ export default {
       deep: true,
       handler(list) {
         let result = false
-        list.forEach((item) => {
+        list.forEach((item,index) => {
+          if (item.attribute === 'hue' || item.attribute === 'saturation' || item.attribute === 'rgb') {
+            list.splice(index, 1)
+          }
           if (item.attribute !== 'delay' && item.chose.value) {
             result = true
           }

@@ -20,6 +20,7 @@
   </div>
 </template>
 <script>
+import { mapGetters } from 'vuex'
 
 export default {
   name: 'kitCode',
@@ -33,8 +34,13 @@ export default {
     return {
       showKeyboard: false,
       code: '',
-      errorInfo: ''
+      errorInfo: '',
+      queryData: {},
+      msgId: ''
     }
+  },
+  computed: {
+    ...mapGetters(['websocket']),
   },
   watch: {
     code(code) {
@@ -46,21 +52,53 @@ export default {
     }
   },
   methods: {
-    autoRequest(code) {
-      if (code !== '12345678') {
-        this.errorInfo = '设置代码不正确，请重新输入！'
-      } else {
-        this.errorInfo = ''
-      }
-    },
     focus() {
       this.showKeyboard = true
     },
     blur() {
       this.showKeyboard = false
+    },
+    // 进行home-kit码匹配
+    autoRequest(code) {
+      // 发送发现指令
+      this.msgId = Date.now()
+      this.websocket.send({
+        id: this.msgId,
+        domain: 'homekit',
+        service: 'set_attributes',
+        identity: this.queryData.identity,
+        service_data: {
+          attributes: [
+            {
+              attribute: 'pin',
+              instance_id: this.queryData.instance_id,
+              val: code
+            }
+          ]
+        }
+      })
+      // 接受消息
+      this.websocket.onmessage((data) => {
+        const msg = JSON.parse(data)
+        if (msg.id === this.msgId) {
+          if (msg.success) {
+            // 跳转至设备详情页
+            setTimeout(() => {
+              // 跳转至设备详情页
+              this.$router.push({
+                name: 'deviceConnect',
+                query: this.queryData
+              })
+            }, 1000)
+          } else {
+            this.errorInfo = '设置失败'
+          }
+        }
+      })
     }
   },
   mounted() {
+    this.queryData = this.$route.query
     // this.$nextTick(() => {
     //   this.$refs.codeInput.focus()
     // })

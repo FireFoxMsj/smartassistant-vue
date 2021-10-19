@@ -1,8 +1,0 @@
-{
-  "brand": "curtain", // 插件品牌名称
-  "brand_id": "curtain", // 插件品牌id
-  "version": "v1.0.0", // 插件版本号
-  "plugin_name": "如鱼得水窗帘，始于1996年，是一家集研发、生产和销售为一体，专注于窗帘定制的企业。", // 插件名称
-  "plugin_id": "curtain_id", // 插件id
-  "plugin_pic": "https://www.dd/fd.png" // 插件图片地址
-}

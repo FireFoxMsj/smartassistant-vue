@@ -36,7 +36,8 @@ import {
   Sticky,
   List,
   PasswordInput,
-  NumberKeyboard
+  NumberKeyboard,
+  Uploader
 } from 'vant'
 
 import i18n from './lang/index' // 多语言
@@ -90,6 +91,7 @@ Vue.use(Tabbar)
   .use(List)
   .use(PasswordInput)
   .use(NumberKeyboard)
+  .use(Uploader)
 
 // 注册全局image组件
 Vue.component('CommonImage', CommonImage)

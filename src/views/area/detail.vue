@@ -95,7 +95,7 @@
       <h3 class="delete-title">{{ dialogInfo.title }}</h3>
       <div class="delete-tip">
         <p>{{ dialogInfo.content }}</p>
-        <van-checkbox v-model="deleteChecked" icon-size=".35rem" checked-color="#FF0000"><span  class="checked-text">同时删除智汀家庭云盘存储的文件</span></van-checkbox>
+        <van-checkbox v-if="userInfo.is_owner" v-model="deleteChecked" icon-size=".35rem" checked-color="#FF0000"><span  class="checked-text">{{$t('global.isDelChecked')}}</span></van-checkbox>
       </div>
     </van-dialog>
     <!-- 选择角色 -->
@@ -173,8 +173,8 @@
   </div>
 </template>
 <script>
-import NameSheet from '@/components/NameSheet.vue'
 import { mapGetters, mapActions } from 'vuex'
+import NameSheet from '@/components/NameSheet.vue'
 import clip from '@/utils/clipboard'
 import InviteCode from './components/InviteCode.vue'
 
@@ -189,7 +189,6 @@ export default {
   },
   data() {
     return {
-      id: '',
       areaInfo: {},
       show: false,
       dialogShow: false,
@@ -214,6 +213,9 @@ export default {
   },
   computed: {
     ...mapGetters(['area', 'userInfo', 'permissions', 'isInsert']),
+    id() {
+      return this.area.id
+    },
     dialogInfo() {
       if (this.dialogType === 'quit') {
         return {
@@ -235,7 +237,7 @@ export default {
   },
   watch: {},
   methods: {
-    ...mapActions(['setToken']),
+    ...mapActions(['setToken', 'setArea']),
     onClickLeft() {
       this.$router.go(-1)
     },
@@ -320,7 +322,6 @@ export default {
     makeInviteCode() {
       const userId = this.userInfo.user_id
       const params = {
-        area_id: this.id,
         role_ids: this.result
       }
       if (!this.result.length) {
@@ -329,6 +330,7 @@ export default {
       }
       this.makeLoading = true
       this.http.getInvitationCode(userId, params).then((res) => {
+        console.log(params, 888)
         this.makeLoading = false
         if (res.status !== 0) {
           return
@@ -337,18 +339,19 @@ export default {
         this.qrCode = qrCode
         this.inviteShow = true
       }).catch(() => {
+        console.log(params, 999)
         this.makeLoading = false
       })
     },
     // 修改家庭名称
     editAreaName(name) {
-      const room = name.trim()
-      if (room === '') {
+      const area = name.trim()
+      if (area === '') {
         this.$toast(this.$t('areadetail.empty'))
         return
       }
       const params = {
-        name: room
+        name: area
       }
       this.nameLoading = true
       this.http.editAreaName(this.id, params).then((res) => {
@@ -356,9 +359,11 @@ export default {
         if (res.status !== 0) {
           return
         }
-        this.areaInfo.name = room
+        this.areaInfo.name = area
         this.show = false
         this.$toast(this.$t('global.saveSuccess'))
+        this.area.name = area
+        this.setArea(this.area)
       }).catch(() => {
         this.nameLoading = false
       })
@@ -406,7 +411,11 @@ export default {
         if (res.status !== 0) {
           return
         }
-        this.onClickLeft()
+        this.setToken('')
+        this.$methods.setStore('token', '')
+        this.$router.push({
+          name: 'professionLogin'
+        })
       })
     },
     // 去成员管理页面
@@ -468,8 +477,6 @@ export default {
     }
   },
   created() {
-    const { query } = this.$route
-    this.id = query.id ? Number(query.id) : ''
     this.initList()
     this.getUserInfo()
     this.getRoleList()
@@ -569,7 +576,7 @@ export default {
   color: #3F4663;
 }
 .delete-tip {
-  padding: 0.23rem 0.4rem 0.56rem 0.4rem;
+  padding: 0.23rem 0.4rem 0.3rem 0.4rem;
   p{
     font-size: .28rem;
     font-weight: bold;

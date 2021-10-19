@@ -202,6 +202,10 @@ export default {
     // 删除设备
     deleteDevice() {
       return this.deviceRoleList.find(item => item.permission.action === 'delete')
+    },
+    // 管理设备
+    manageDevice() {
+      return this.deviceRoleList.find(item => item.permission.action === 'manage')
     }
   },
   watch: {
@@ -228,6 +232,17 @@ export default {
       }
     },
     deleteDevice: {
+      deep: true,
+      handler(val) {
+        if (this.isdeleteInit) {
+          // 第一次进来取接口的值
+          this.isdeleteInit = false
+          return
+        }
+        this.handleDevicePermission(val)
+      }
+    },
+    manageDevice: {
       deep: true,
       handler(val) {
         if (this.isdeleteInit) {

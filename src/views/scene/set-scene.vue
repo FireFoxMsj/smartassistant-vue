@@ -81,6 +81,8 @@
                   lazy-load
                   fit="contain"
                   :src="getConditionIcon(condition)"/>
+                <span v-if="condition.device_info && condition.device_info.status === 3" class="mask">{{$t('scene.offLine')}}</span>
+                <span v-if="condition.device_info && condition.device_info.status === 2" class="mask">{{$t('scene.deleted')}}</span>
               </div>
             </div>
             <template #right>
@@ -148,6 +150,8 @@
                   fit="contain"
                   lazy-load
                   :src="getTaskIcon(task)"/>
+                <span v-if="task.device_info && task.device_info.status === 3" class="mask">{{$t('scene.offLine')}}</span>
+                <span v-if="task.device_info && task.device_info.status === 2" class="mask">{{$t('scene.deleted')}}</span>
               </div>
             </div>
             <template #right>
@@ -1176,6 +1180,18 @@ export default {
         border-radius: .08rem;
         position: relative;
         overflow: hidden;
+        .mask{
+          position: absolute;
+          left: 0;
+          bottom: 0;
+          width: 100%;
+          height: .3rem;
+          line-height: .3rem;
+          text-align: center;
+          color: #ffffff;
+          font-size: .2rem;
+          background: rgba(0,0,0,.5);
+        }
       }
       .border{
         border: 1PX solid #EEEEEE;

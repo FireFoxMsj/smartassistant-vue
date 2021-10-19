@@ -3,7 +3,10 @@ import i18n from '../lang/index'
 const attrMap = {
   power: 'power',
   color_temp: 'templature',
-  brightness: 'brightness'
+  brightness: 'brightness',
+  hue: 'hue',
+  saturation: 'saturation',
+  rgb: 'rgb'
 }
 
 export const getAttr = (attr) => {

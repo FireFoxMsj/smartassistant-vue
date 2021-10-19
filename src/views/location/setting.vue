@@ -162,7 +162,7 @@ export default {
     } = this.$route.query
     this.initList()
     this.locationId = locationId ? Number(locationId) : ''
-    this.deviceId = deviceId ? Number(deviceId) : ''
+    this.deviceId = deviceId ? Number(deviceId) : 0
     this.deviceName = from
     this.isSetting = Boolean(from)
   }

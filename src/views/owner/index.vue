@@ -146,15 +146,15 @@ export default {
     },
     toAreaDetail() {
       this.$router.push({
-        name: 'areaDetail',
-        query: this.area
+        name: 'areaDetail'
       })
     },
     // 智汀网盘
     toPan() {
       // 智汀网盘地址，目前暂时写本地地址
       const lang = this.$methods.getStore('lang')
-      const href = `http://192.168.0.123:9010/#/?from=zhiting&lang=${lang}`
+      const { protocol, hostname } = window.location
+      const href = `${protocol}//${hostname}:9010/#/?from=zhiting&lang=${lang}`
       if (this.isApp) {
         window.location.href = href
       } else {
