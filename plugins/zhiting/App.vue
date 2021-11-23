@@ -52,7 +52,7 @@ export default {
     }
   },
   methods: {
-    ...mapActions(['setWebsocket', 'setIdentity', 'setDeviceId', 'setDeviceInfo', 'setArgs']),
+    ...mapActions(['setWebsocket', 'setIdentity', 'setDeviceId', 'setDeviceInfo', 'setArgs', 'setpluginId']),
     // pc向父级发消息
     postMessage(data) {
       window.parent.postMessage(data, '*')
@@ -114,9 +114,13 @@ export default {
     // 设置设备唯一标识
     const { identity } = params
     this.setIdentity(identity)
+    // 设置插件id
+    const { pluginId } = params
+    this.setpluginId(pluginId)
     // 生成连接 并设置全局对象
+    const wsUrl = getRemote()
     const ws = new Socket({
-      url: `${getRemote()}?token=${token}&sa_id=${saId}`,
+      url: `${wsUrl}?token=${token}&sa_id=${saId}`,
     })
     this.setWebsocket(ws)
     this.toDeviceDetail(params)

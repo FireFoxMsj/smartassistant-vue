@@ -13,7 +13,7 @@ import { getRemote } from '../../config/index'
 export default {
   name: 'app',
   methods: {
-    ...mapActions(['setWebsocket', 'setIdentity', 'setDeviceId']),
+    ...mapActions(['setWebsocket', 'setIdentity', 'setDeviceId', 'setPluginId']),
     // 浏览器地址转化
     getUrlParams(url) {
       const str = url.substr(url.indexOf('?') + 1)
@@ -24,14 +24,20 @@ export default {
         const [key, value] = param
         obj[key] = decodeURIComponent(value)
       })
-      console.log(obj)
       return obj
     },
     toDeviceDetail(query) {
       const { model } = query
+      // 开关
+      const switchs = ['HS220(US)']
       // 灯
-      const switchs = ['KL110(US)']
+      const light = ['KL110(US)']
       if (switchs.includes(model)) {
+        this.$router.replace({
+          name: 'switch',
+          query
+        })
+      } else if (light.includes(model)) {
         this.$router.replace({
           name: 'light',
           query
@@ -51,6 +57,9 @@ export default {
     // 设置设备唯一标识
     const { identity } = params
     this.setIdentity(identity)
+    // 设置插件唯一id
+    const { pluginId } = params
+    this.setPluginId(pluginId)
     // 生成连接 并设置全局对象
     const ws = new Socket({
       url: `${getRemote()}?token=${token}&sa_id=${saId}`,

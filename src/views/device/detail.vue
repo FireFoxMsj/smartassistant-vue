@@ -25,7 +25,7 @@
           fit="contain"/>
         <p class="one-line">{{ saInfo.name }}</p>
       </div>
-      <div class="plugin-op">
+      <div class="plugin-op" v-if="opList.length>0">
         <div
           v-for="item in opList"
           :key="item.value"
@@ -61,6 +61,7 @@ export default {
       menu,
       id: '',
       isSa: false,
+      pluginUrl: '',
       loading: false,
       titleShow: true, // 是否显示标题
       deviceInfo: {},
@@ -76,25 +77,26 @@ export default {
       return false
     },
     opList() {
-      let arr = []
+      const arr = []
+      const softwarePower = 'sa_firmware_upgrade'
+      const firmwarePower = 'sa_software_upgrade'
       if (this.userInfo.is_owner) {
-        arr = [
-          {
-            value: 'powerManage',
-            name: this.$t('deviceDetail.power')
-          },
-          {
-            value: 'firmwareUpgrade',
-            name: this.$t('deviceDetail.update')
-          }
-        ]
-      } else {
-        arr = [
-          {
-            value: 'firmwareUpgrade',
-            name: this.$t('deviceDetail.update')
-          }
-        ]
+        arr.push({
+          value: 'powerManage',
+          name: this.$t('deviceDetail.power')
+        })
+      }
+      if (this.permissions[softwarePower]) {
+        arr.push({
+          value: 'softwareUpgrade',
+          name: this.$t('deviceDetail.softwareUpgrade')
+        })
+      }
+      if (this.permissions[firmwarePower]) {
+        arr.push({
+          value: 'firmwareUpgrade',
+          name: this.$t('deviceDetail.update')
+        })
       }
       return arr
     }
@@ -110,6 +112,15 @@ export default {
         this.$router.push({
           name: 'powerManage'
         })
+      } else if (item.value === 'softwareUpgrade') {
+        this.$router.push({
+          name: 'softwareUpgrade'
+        })
+      } else if (item.value === 'firmwareUpgrade') {
+        // this.$router.push({
+        //   name: 'firmwareUpgrade'
+        // })
+        this.$toast.loading('开发中...')
       }
     },
     // 获取设备详情
@@ -120,7 +131,25 @@ export default {
         }
         const { device_info: deviceInfo } = res.data
         this.deviceInfo = deviceInfo || {}
+        // 设置iframe地址
+        this.setPlugin()
+      }).catch(() => {
+        this.setPlugin()
       })
+    },
+    // 设置插件地址
+    setPlugin() {
+      // 替换插件连接地址设备名称（修复修改设备名称无法更新问题）
+      const { name } = this.deviceInfo
+      const pluginUrl = name ? this.pluginUrl.replace(/name=[^&]*/, `name=${name}`) : this.pluginUrl
+      const iframe = document.querySelector('#insert') || {}
+      iframe.src = decodeURIComponent(pluginUrl)
+      // 接受子级message
+      window.addEventListener('message', this.receiMessage, false)
+      this.loading = true
+      iframe.onload = () => {
+        this.loading = false
+      }
     },
     onClicRight() {
       // 去设备设置页面
@@ -155,14 +184,8 @@ export default {
       this.saInfo = saInfo ? JSON.parse(saInfo) : {}
       return
     }
-    const iframe = document.querySelector('#insert')
-    iframe.src = decodeURIComponent(pluginUrl)
-    // 接受子级message
-    window.addEventListener('message', this.receiMessage, false)
-    this.loading = true
-    iframe.onload = () => {
-      this.loading = false
-    }
+    // 设置插件详情页面
+    this.pluginUrl = pluginUrl
   }
 }
 </script>

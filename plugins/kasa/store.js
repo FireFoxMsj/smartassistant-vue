@@ -25,6 +25,9 @@ export default new Vuex.Store({
     },
     setDeviceId(state, deviceId) {
       state.deviceId = deviceId
+    },
+    setPluginId(state, pluginId) {
+      state.pluginId = pluginId
     }
   },
   actions: {
@@ -36,6 +39,9 @@ export default new Vuex.Store({
     },
     setDeviceId({ commit }, payload) {
       commit('setDeviceId', payload)
+    },
+    setPluginId({ commit }, payload) {
+      commit('setPluginId', payload)
     }
   },
 })

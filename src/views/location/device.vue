@@ -61,8 +61,8 @@
    </div>
 </template>
 <script>
-import NameSheet from '@/components/NameSheet.vue'
 import { mapGetters } from 'vuex'
+import NameSheet from '@/components/NameSheet.vue'
 
 export default {
   name: 'locationDevice',

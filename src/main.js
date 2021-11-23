@@ -37,7 +37,10 @@ import {
   List,
   PasswordInput,
   NumberKeyboard,
-  Uploader
+  Uploader,
+  Calendar,
+  Overlay,
+  Progress
 } from 'vant'
 
 import i18n from './lang/index' // 多语言
@@ -52,6 +55,7 @@ import './styles/index.scss'
 import * as http from './api/http'
 import Bus from './bus/index'
 import 'vant/lib/index.css'
+// eslint-disable-next-line
 import '@vant/touch-emulator'
 
 Vue.use(Tabbar)
@@ -92,6 +96,9 @@ Vue.use(Tabbar)
   .use(PasswordInput)
   .use(NumberKeyboard)
   .use(Uploader)
+  .use(Calendar)
+  .use(Overlay)
+  .use(Progress)
 
 // 注册全局image组件
 Vue.component('CommonImage', CommonImage)

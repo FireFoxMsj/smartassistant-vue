@@ -22,19 +22,6 @@
             radius="0.2rem"
             :src="detailData.logo_url"/>
           <p class="brand-name two-line float-l">{{ detailData.name }}</p>
-          <template>
-          <button
-              v-if="!detailData.is_added"
-              class="op-btn float-r"
-              @click="installAll">{{ $t('branddetail.addAll') }}</button>
-            <button
-              v-else-if="!detailData.is_newest"
-              class="op-btn float-r"
-              @click="updateAll">{{ $t('branddetail.updateAll') }}</button>
-            <span
-              v-else
-              class="added float-r">{{ $t('branddetail.added') }}</span>
-          </template>
         </div>
         <div
           v-for="plugin in pluginList"
@@ -49,30 +36,13 @@
               size="0.4rem"
               class="float-r"/>
             <div class="float-r" v-show="!plugin.isInstall && !isInsert">
-              <span v-if="!plugin.is_added" class="op-btn" @click.stop="install(plugin)">{{ $t('global.add') }}</span>
+              <span v-if="!plugin.is_added" class="op-btn" @click.stop="unstallSingle(plugin)">{{ $t('global.add') }}</span>
               <span v-else class="op-btn" @click.stop="handleDelBtn(plugin)">{{ $t('global.del') }}</span>
-              <span v-if="!plugin.is_newest && plugin.is_added" class="op-btn mgl20" @click.stop="update(plugin)">{{ $t('global.update') }}</span>
+              <span v-if="!plugin.is_newest && plugin.is_added" class="op-btn mgl20" @click.stop="unstallSingle(plugin)">{{ $t('global.update') }}</span>
             </div>
           </div>
-          <p class="version">{{ $t('branddetail.version') }}{{ plugin.version }}</p>
-          <p class="desc">{{ plugin.info }}</p>
-        </div>
-      </div>
-      <div class="device-part">
-        <p class="device-word">{{ $t('branddetail.supportTip') }}</p>
-        <div class="device-list">
-          <div
-            v-for="device in deviceList"
-            :key="device.name"
-            class="device-item">
-            <div class="device-pic">
-              <CommonImage
-                class="img"
-                fit="contain"
-                :src="device.logo_url"/>
-            </div>
-            <p class="device-name">{{ device.name }}</p>
-          </div>
+          <p class="version">{{ $t('branddetail.version') }}v{{ plugin.version }}</p>
+          <p class="desc three-line" v-html="plugin.info"></p>
         </div>
       </div>
     </template>
@@ -98,11 +68,13 @@ export default {
       currentPlugin: {}, // 当前操作的插件
       sureShow: false,
       deleteTip: '', // 删除提示
-      loading: false
+      loading: false,
+      brandName: '',
+      type: ''
     }
   },
   computed: {
-    ...mapGetters(['websocket', 'isInsert']),
+    ...mapGetters(['isInsert']),
     pluginList() {
       return this.detailData.plugins || []
     },
@@ -111,9 +83,9 @@ export default {
     }
   },
   methods: {
-    initData(id) {
+    initData(brandName) {
       this.loading = true
-      this.http.getBrandDetail(id).then((res) => {
+      this.http.getBrandDetail(brandName).then((res) => {
         this.loading = false
         if (res.status !== 0) {
           return
@@ -122,78 +94,81 @@ export default {
         const { brand } = data
         if (brand.plugins) {
           brand.plugins.forEach((plugin) => {
+            plugin.info = plugin.info.replace(/\n/g, '<br/>')
             plugin.isInstall = false
           })
         }
         this.detailData = brand
       })
     },
-    // 全部添加
-    installAll() {
+    // 全部添加/更新
+    installAll(isUpdate = false) {
+      const plugins = []
       this.pluginList.forEach((plugin) => {
-        if (!plugin.is_added) {
-          this.install(plugin)
+        if (!isUpdate) {
+          if (!plugin.is_added) {
+            plugin.isInstall = true
+            plugins.push(plugin.id)
+          }
+        } else if (!plugin.is_newest && plugin.is_added) {
+          plugin.isInstall = true
+          plugins.push(plugin.id)
         }
       })
+      this.install(plugins)
     },
-    // 更新全部
-    updateAll() {
-      this.pluginList.forEach((plugin) => {
-        if (!plugin.is_newest && plugin.is_added) {
-          this.update(plugin)
-        }
-      })
+    // 添加/更新单个插件
+    unstallSingle(plugin) {
+      const plugins = [plugin.id]
+      plugin.isInstall = true
+      this.install(plugins)
     },
     // 添加插件
-    install(plugin) {
-      plugin.isInstall = true
-      plugin.installId = this.$methods.getId() - 0
-      this.websocket.send({
-        id: plugin.installId,
-        domain: 'plugin',
-        service: 'install',
-        service_data: {
-          plugin_id: plugin.id
+    install(plugins) {
+      const params = {
+        plugins
+      }
+      this.http.installPlugin(this.brandName, params).then((res) => {
+        if (res.status !== 0) {
+          return
         }
-      })
-    },
-    // 更新插件
-    update(plugin) {
-      plugin.isInstall = true
-      plugin.updateId = this.$methods.getId() - 0
-      this.websocket.send({
-        id: plugin.updateId,
-        domain: 'plugin',
-        service: 'update',
-        service_data: {
-          plugin_id: plugin.id
-        }
+        const successPlugins = res.data.success_plugins || []
+        // 如果全部插件安装成功
+        this.pluginList.forEach((plugin) => {
+          plugin.isInstall = false
+          if (successPlugins.includes(plugin.id)) {
+            plugin.is_added = true
+            plugin.is_newest = true
+          }
+        })
+      }).catch(() => {
+        this.pluginList.forEach((plugin) => {
+          plugin.isInstall = false
+        })
       })
     },
     // 点击删除按钮
     handleDelBtn(plugin) {
+      console.log(plugin)
       let res = ''
       this.currentPlugin = plugin
-      this.currentPlugin.support_devices.forEach((device) => {
-        res += `${device.name}、`
-      })
-      res = res.replace(/、$/, '')
+      res = plugin.name.replace(/、$/, '')
       this.deleteTip = `${this.$t('branddetail.delContent1')}${res}${this.$t('branddetail.delContent2')}`
       this.sureShow = true
     },
     deletePlugin() {
-      // 删除插件
-      this.websocket.send({
-        id: 1,
-        domain: 'plugin',
-        service: 'remove',
-        service_data: {
-          plugin_id: this.currentPlugin.id
+      const plugins = [this.currentPlugin.id]
+      const params = {
+        plugins
+      }
+      this.http.deletePlugin(this.brandName, params).then((res) => {
+        if (res.status !== 0) {
+          return
         }
+        this.currentPlugin.is_added = false
+        // 删除成功提示
+        this.$toast(this.$t('global.delSuccess'))
       })
-      this.currentPlugin.is_added = false
-      // 删除成功提示
-      this.$toast(this.$t('global.delSuccess'))
     },
     onClickLeft() {
       this.$router.go(-1)
@@ -208,31 +183,11 @@ export default {
     }
   },
   created() {
-    const { id } = this.$route.query
-    this.initData(id)
-  },
-  mounted() {
-    this.websocket.onmessage((data) => {
-      // 回调是否成功
-      const msgJson = JSON.parse(data)
-      const { success } = msgJson
-      if (!success) {
-        return
-      }
-      this.pluginList.forEach((plugin) => {
-        // 如果是添加
-        if (msgJson.id === plugin.installId) {
-          plugin.isInstall = false
-          plugin.is_added = true
-          plugin.is_newest = true
-        }
-        // 如果是更新
-        if (msgJson.id === plugin.updateId) {
-          plugin.isInstall = false
-          plugin.is_newest = true
-        }
-      })
-    })
+    const { brand } = this.$route.query
+    const { type } = this.$route.query
+    this.brandName = brand
+    this.type = type
+    this.initData(brand)
   }
 }
 </script>
@@ -304,46 +259,10 @@ export default {
   font-size: 0.24rem;
   line-height: 0.36rem;
   color: #3F4663;
+  word-break: break-word;
 }
-.device-part {
-  padding: 0.4rem 0.3rem;
-}
-.device-word {
-  padding-bottom: 0.2rem;
-  font-size: 0.24rem;
-  color: #94A5BE;
-}
-.device-item {
-  display: flex;
-  align-items: center;
-  padding: 0.2rem 0;
-  border-bottom: 1PX solid #eeeeee;
-}
-.device-pic {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 1rem;
-  height: 1rem;
-  background: #FFFFFF;
-  border: 1PX solid #eeeeee;
-  border-radius: 0.08rem;
-  .img {
-    height: 0.8rem;
-    max-width: 0.8rem;
-  }
-}
-.device-name {
-  font-size: 0.28rem;
-  color: #3F4663;
-  margin-left: 0.3rem;
-}
-.delete-tip {
-  padding: 0.58rem 0.8rem;
-  font-size: 0.28rem;
-  font-weight: bold;
-  line-height: 1.5;
-  color: #3F4663;
-  text-align: center;
+.delete-tip{
+  padding: .4rem .3rem;
+  line-height: .6rem;
 }
 </style>

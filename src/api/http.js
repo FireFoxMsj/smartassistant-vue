@@ -85,6 +85,24 @@ export const getPluginDetail = (id, params = {}) => http.g(
 )
 
 /**
+* 安装/更新插件
+@param { brand: String } 参数路径，品牌名称
+*/
+export const installPlugin = (brand, params = {}) => http.p(
+  `${apiHeader}/brands/${brand}/plugins`,
+  params
+)
+
+/**
+* 删除插件
+@param { brand: String } 参数路径，品牌名称
+*/
+export const deletePlugin = (brand, params = {}) => http.d(
+  `${apiHeader}/brands/${brand}/plugins`,
+  params
+)
+
+/**
 * 获取家庭列表
 */
 export const getAreaList = (params = {}) => http.g(
@@ -448,7 +466,7 @@ export const getScAreaList = (params = {}) => http.g(
  * 获取找回用户凭证的配置
  @param {}
  */
-export const userCertificate = (params = {}) => http.g(
+export const getUserCertificate = (params = {}) => http.g(
   `${apiHeader}/setting`,
   params
 )
@@ -463,10 +481,100 @@ export const setUserCertificate = (params = {}) => http.u(
 )
 
 /**
+ * 获取日志列表
+ @param {}
+ */
+export const getLogList = (params = {}) => http.g(
+  `${apiHeader}/log`,
+  params
+)
+
+/**
+ * 获取日志列表
+ @param {}
+ */
+export const uploadLog = (params = {}) => http.u(
+  `${apiHeader}/log`,
+  params
+)
+
+/**
+ * 创建备份
+ @param {}
+ */
+export const createBackup = (params = {}) => http.p(
+  `${apiHeader}/supervisor/backups`,
+  params
+)
+
+/**
+ * 获取备份列表
+ @param {}
+ */
+export const getBackupList = (params = {}) => http.g(
+  `${apiHeader}/supervisor/backups`,
+  params
+)
+
+/**
+ * 恢复备份
+ @param {}
+ */
+export const recoverBackup = (params = {}) => http.p(
+  `${apiHeader}/supervisor/backups/restore`,
+  params
+)
+
+/**
+ * 删除备份
+ @param {}
+ */
+export const deleteBackup = (params = {}) => http.d(
+  `${apiHeader}/supervisor/backups`,
+  params
+)
+
+/**
+ * 获取版本信息
+ @param {}
+ */
+export const getSaVersionInfo = (params = {}) => http.g(
+  `${apiHeader}/supervisor/update`,
+  params
+)
+
+/**
+ * 软件升级
+ @param {}
+ */
+export const updateSaVersion = (params = {}) => http.p(
+  `${apiHeader}/supervisor/update`,
+  params
+)
+
+/**
  * 上传插件
  @param {}
  */
 export const uploaderPlugins = params => http.p(
   `${apiHeader}/plugins`,
+  params
+)
+
+/**
+ * 创作插件列表
+ @param {} // list_type: 0所有已添加插件 1开发者添加的插件（创作）
+ */
+export const creatPlugins = params => http.g(
+  `${apiHeader}/plugins`,
+  params
+)
+
+/**
+ * 创作插件删除
+ @param {} // list_type: 0所有已添加插件 1开发者添加的插件（创作）
+ */
+export const deleteCreatPlugin = (id, params = {}) => http.d(
+  `${apiHeader}/plugins/${id}`,
   params
 )

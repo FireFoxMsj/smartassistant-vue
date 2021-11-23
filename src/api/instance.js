@@ -54,12 +54,10 @@ const commonBase = (reqAxios, type, url, params) => new Promise((resolve, reject
       const { data } = response
       if (data.status === 5012) {
         // 登录拦截
-        LoginTip.show(store.state.area.name)
-        // $methods.default.setStore('token', '')
-        // store.commit('setToken', '')
-        // router.replace({
-        //   name: 'professionLogin'
-        // })
+        LoginTip.show(store.state.area.name, data.status)
+      } else if (data.status === 5003) {
+        // 用户不存在
+        LoginTip.show('', data.status)
       } else if (data.status === 5021) {
         // 没有权限 重新获取权限
         const { userInfo } = store.state

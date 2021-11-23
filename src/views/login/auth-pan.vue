@@ -23,6 +23,11 @@
       loading-type="spinner"
       :loading-text="loadingText"
       @click="toAuthLogin">{{ $t('login.panAuth') }}</van-button>
+    <van-button
+      class="cancel-btn"
+      @click="cancelLogin">
+      {{ $t('global.cancel') }}
+    </van-button>
   </div>
 </template>
 <script>
@@ -116,6 +121,13 @@ export default {
       }).catch(() => {
         this.loading = false
       })
+    },
+    cancelLogin() {
+      const params = this.getUrlParams()
+      const { callbackUrl } = params
+      if (callbackUrl) {
+        window.location.href = callbackUrl
+      }
     }
   },
   mounted() {
@@ -171,13 +183,20 @@ export default {
   font-size: 0.28rem;
   color: #1A2734;
 }
-.auth-btn {
+.auth-btn,.cancel-btn{
   width: 5.5rem;
   height: 1rem;
-  background: #427AED;
   border-radius: 0.08rem;
   font-size: 0.28rem;
+}
+.auth-btn{
+  background: #427AED;
   color: #fff;
-  margin-top: 3.6rem;
+  margin-top: 2.6rem;
+  margin-bottom: .4rem;
+}
+.cancel-btn{
+  background: #ffffff;
+  color: #111;
 }
 </style>

@@ -2,17 +2,12 @@
   <div>
   <van-popup
     v-model="show"
+    closeable
+    close-icon="close"
     class="update-wrap"
     position="bottom">
     <div class="wrapper-detail">
       <div class="main-box">
-        <van-nav-bar
-          title="固件升级"
-          left-arrow
-          :fixed="true"
-          :placeholder="true"
-          @click-left="onClickLeft">
-        </van-nav-bar>
         <div class="custom-box">
           <div class="image">
             <img src="../assets/switch/update-firmware.png" alt="">
@@ -85,9 +80,6 @@ export default {
     }
   },
   methods: {
-    onClickLeft() {
-      this.show = false
-    },
     update() {
       this.$bus.$emit('update')
     },

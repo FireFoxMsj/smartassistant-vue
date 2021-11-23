@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="wrap-box">
     <div class="back clearfix">
       <van-icon
         class="float-l"
@@ -57,6 +57,11 @@
           :disabled="loading">{{ $t('login.login') }}</van-button>
       </div>
     </div>
+    <div class="protocol">
+      <van-checkbox icon-size=".28rem" v-model="checked">{{$t('login.checkedText')}}</van-checkbox>
+      <a href="javascript:;" @click="goAgreement('https://scgz.zhitingtech.com/smartassitant/protocol/user')">{{$t('login.agreementUser')}}</a>、
+      <a href="javascript:;" @click="goAgreement('https://scgz.zhitingtech.com/smartassitant/protocol/privacy')">{{$t('login.agreementPrivacy')}}</a>
+    </div>
   </div>
 </template>
 <script>
@@ -72,7 +77,8 @@ export default {
       accountErr: '',
       passwordErr: '',
       loading: false,
-      params: {}
+      params: {},
+      checked: false
     }
   },
   computed: {
@@ -118,6 +124,10 @@ export default {
     },
     // 登录
     login() {
+      if (!this.checked) {
+        this.$toast(this.$t('login.protocol'))
+        return
+      }
       if (!this.verify()) {
         return
       }
@@ -149,6 +159,9 @@ export default {
       }).catch(() => {
         this.loading = false
       })
+    },
+    goAgreement(type) {
+      window.open(type, '_blank')
     }
   }
 }
@@ -162,6 +175,11 @@ export default {
   color: #3F4663;
   text-align: center;
   padding: 0.2rem 0.34rem;
+}
+.wrap-box{
+  min-height: 100vh;
+  padding-bottom: 1rem;
+  position: relative;
 }
 .wrap {
   padding: 0 1rem;
@@ -258,4 +276,25 @@ export default {
   font-weight: bold;
   color: #FFFFFF;
 }
+.protocol{
+  position: absolute;
+  padding: 0 .2rem;
+  bottom: .3rem;
+  left: 0;
+  width: 100%;
+  font-size: .22rem;
+  color: #94A5BE;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  a {
+    color: #2DA3F6;
+  }
+}
+</style>
+<style scoped>
+  .protocol >>> .van-checkbox__label{
+    color: #94A5BE;
+  }
 </style>

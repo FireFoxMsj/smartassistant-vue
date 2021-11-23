@@ -5,9 +5,9 @@
     color="#F6AE1E"
     background="#FDF3DF"
     :scrollable="false"
-    text="当前设备已离线，连接局域网后才能控制此设备">
+    text="当前设备已离线，请检查设备的网络和通电状态">
     <template #right-icon>
-      <div @click="reflesh" class="notice-right">
+      <div @click="refresh" class="notice-right">
         <van-icon name="replay" :class="{ 'a-rotate': loading }"/>
         <span>刷新</span>
       </div>
@@ -28,8 +28,8 @@ export default {
     }
   },
   methods: {
-    reflesh() {
-      this.$emit('onReflesh')
+    refresh() {
+      this.$emit('onRefresh')
     }
   }
 }

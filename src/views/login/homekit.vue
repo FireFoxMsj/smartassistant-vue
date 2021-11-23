@@ -31,6 +31,7 @@ export default {
   data() {
     return {
       kitCode,
+      queryData: {},
     }
   },
   components: {
@@ -40,7 +41,17 @@ export default {
   watch: {},
   methods: {
     onClickLeft() {
-      this.$router.go(-1)
+      this.$router.push({
+        name: 'deviceDiscover',
+        query: {
+          areaId: this.queryData.areaId
+        }
+      })
+    }
+  },
+  mounted() {
+    if (this.$route.query) {
+      this.queryData = this.$route.query
     }
   }
 }

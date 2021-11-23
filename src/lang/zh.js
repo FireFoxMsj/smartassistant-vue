@@ -11,15 +11,18 @@ export const global = {
   editSuccess: '编辑成功',
   delSuccess: '删除成功',
   traSuccess: '转移成功',
-  delSuccessChecked: '已删除家庭，同时删除智汀家庭云盘存储的文件',
-  isDelChecked: '同时删除智汀家庭云盘存储的文件',
+  delSuccessChecked: '已删除家庭，同时删除智汀云盘存储的文件',
+  isDelChecked: '同时删除智汀云盘存储的文件',
   add: '添加',
+  recover: '恢复',
+  recovering: '正在恢复...',
   del: '删除',
   update: '更新',
   opFail: '操作失败',
   finish: '完成',
   filter: '筛选',
   confirm: '确定',
+  cancel: '取消',
   weak: '暂无网络',
   retry: '重试',
   netWorkErr: '网络异常',
@@ -42,6 +45,18 @@ export const global = {
   colorTempName: '色温',
   brightnessName: '亮度',
   uploaderSuccess: '上传成功',
+  normal: '正常',
+  warn: '警告',
+  error: '错误',
+  trace: '踪迹',
+  debug: '调试',
+  fatal: '致命错误',
+  panic: '严重错误',
+  other: '其他',
+  noMore: '没有更多了',
+  updateSuccess: '更新成功',
+  updateFail: '更新失败',
+  deleting: '删除中...',
 }
 
 export const home = {
@@ -52,7 +67,7 @@ export const home = {
 
 export const owner = {
   position: '家庭/公司',
-  pan: '智汀家庭网盘',
+  pan: '智汀云盘',
   support: '支持品牌',
   platform: '第三方平台',
   lang: '语言',
@@ -66,14 +81,49 @@ export const owner = {
   certificateDesc1: '成员可以在任何手机/平板连接智慧中心',
   certificateTitle2: '不允许找回',
   certificateDesc2: '成员更换手机/平板或卸载APP后无法再次连接',
-  certificateSetTip: '您可以到专业版-家居-智慧中心修改已选择项'
+  certificateSetTip: '您可以到专业版-家居-智慧中心修改已选择项',
+  log: '日志',
+  backup: '数据备份',
+  logSync: '同步日志到云端',
+  logSyncDesc: '开启后，将自动上传日志到智汀云端，提供给智汀进行诊察问题等',
+  logging: '日志记录',
+  logUpload: '上传日志',
+  logUploading: '正在上传',
+  logUploadTime: '上传时间',
+  logUploadSuccess: '上传成功',
+  logUploadFail: '上传失败',
+  logDateFilter: '日期筛选',
+  logAllDate: '全部日期',
+  logUploadConfirmTip: '确定上传日志到智汀云端吗？',
+  backupRecord: '备份记录',
+  backupBtn: '备份',
+  backupConfirmSecTitle: '恢复备份的数据替换目前的数据，你确定要继续吗？',
+  backupConfirmContent: '* 恢复需要一定时间，且恢复过程中智慧中心将暂停使用，恢复结束后可正常使用',
+  backupDelSecTitle: '备份的数据删除后无法找回，你确定要继续吗？',
+  backupLocation: '备份位置：系统磁盘-系统分区',
+  backupData: '将备份以下数据：全部数据',
+  backupMarkTip: '* 备份过程中智慧中心将暂停使用，备份结束后可正常使用',
+  backupMarkPlaceholder: '请输入备注信息',
+  backupStart: '开始备份',
+  backupMarkSecTitle: '确定要备份目前的数据吗？',
+  backupMarkContent: '* 恢复需要一定时间，且恢复过程中智慧中心将暂停使用，恢复结束后可正常使用',
+  backingUp: '正在备份',
+  backupNeedTime: '这可能需要几分钟到几小时',
+  backupTime: '备份时间：',
+  backupSuccess: '备份成功',
+  backupFail: '备份失败',
+  backupDate: '数据日期和时间',
+  backupFailReason: '失败原因',
+  recoverSuccess: '恢复成功',
+  recoverFail: '恢复失败',
+  protocol: '用户协议和隐私政策'
 }
 
 export const discover = {
   title: '添加设备',
   scan: '正在扫描',
-  tip1: '请确保智能设备已连接电源，且已连接局域网',
-  tip2: '第一次添加某品牌时，请进入【我-支持品牌】添加该品牌',
+  tip1: '1、请确保设备已连接电源，且已重置',
+  tip2: '2、第一次添加某品牌的设备时，请进入【我-支持品牌】添加该品牌',
   add: '添加',
   empty: '未发现设备',
   retry: '重新扫描'
@@ -167,7 +217,7 @@ export const login = {
   passwordEmptyTip: '请输入密码',
   register: '注册',
   forget: '忘记密码',
-  protocol: '点击确定，代表已阅读并同意XXXXXX',
+  protocol: '请阅读并勾选协议',
   profession: '专业版',
   account: '用户名',
   accountPlaceholder: '请输入用户名',
@@ -184,8 +234,11 @@ export const login = {
   authBinded: '（已被绑定）',
   welcome: '欢迎加入智汀家庭网盘',
   agree1_1: '同意将智汀家庭云（',
-  agree1_2: '）的以下信息授权给智汀家庭云盘',
-  panAuth: '确认授权'
+  agree1_2: '）的以下信息授权给智汀云盘',
+  panAuth: '确认授权',
+  checkedText: '阅读并同意智汀家庭云',
+  agreementUser: '用户协议',
+  agreementPrivacy: '隐私政策'
 }
 
 export const branddetail = {
@@ -203,7 +256,7 @@ export const brandsupport = {
   title: '支持品牌',
   addPlugin: '添加插件',
   searchPlaceholder: '输入品牌名称搜索',
-  searchTip: '可添加以下品牌的设备，如需添加其他品牌，可点击右上角“+”添加；如系统没有对应品牌的插件，可点击【添加插件】，手动上传',
+  searchTip: '可添加以下品牌的设备，如需添加其他品牌，可点击右上角搜索图 标添加；如系统没有对应品牌的插件，可切换至【创作】中手动上 传插件',
   sheetName: '标题',
   uploadTitle: '点击上传插件',
   uploadContent: '如系统没有该插件，可手动上传',
@@ -211,13 +264,20 @@ export const brandsupport = {
   added: '已添加',
   total: '共',
   plugin: '个插件',
-  acceptZip: '请上传zip格式压缩包'
+  acceptZip: '请上传zip格式压缩包',
+  addFail: '添加失败'
 }
 
 export const deviceDetail = {
   title: '设备详情',
   update: '固件升级',
-  power: '权限管理'
+  power: '高级设置',
+  softwareUpgrade: '软件升级',
+  currentVersion: '当前版本',
+  checkVersion: '检查升级',
+  latestVersion: '当前已是最新版本',
+  checkNewVersion: '检查到有新版本',
+  isUpdate: '是否升级'
 }
 
 export const devicemanage = {
@@ -285,7 +345,7 @@ export const addlist = {
 }
 
 export const third = {
-  title: '第三平台',
+  title: '第三方平台',
   du: '小度',
   tm: '天猫精灵',
   duTitle: '连接百度小度',
@@ -473,4 +533,12 @@ export const deviceAttr = {
   hue: '色调',
   saturation: '饱和度',
   rgb: '色彩'
+}
+
+export const protocol = {
+  title: '用户协议和隐私政策',
+  privacyPolicy: '隐私政策',
+  userAgreement: '用户协议',
+  agreementTitle: '用户协议',
+  privacyTitle: '隐私政策'
 }

@@ -3,7 +3,7 @@
     <OfflineNotice
       :show="!isOnline"
       :loading="isFleshing"
-      @onReflesh="refresh"/>
+      @onRefresh="refresh"/>
     <div class="device">
       <div class="sensor-box humidity">
         <div class="details">
@@ -17,7 +17,7 @@
 
 <script>
 import { mapGetters } from 'vuex'
-import OfflineNotice from '../../components/OfflineNotice.vue'
+import OfflineNotice from '../../../components/OfflineNotice.vue'
 
 const menu = require('../../assets/switch/menu.png')
 

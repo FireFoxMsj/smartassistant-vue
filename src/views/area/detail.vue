@@ -41,7 +41,7 @@
             <van-icon name="arrow" class="item__icon"/>
           </span>
         </div>
-        <div class="item clearfix" v-if="false">
+        <div class="item clearfix" v-if="userInfo.is_owner">
           <span class="item__label one-line float-l">{{ $t('areadetail.verify') }}</span>
           <span class="item__name float-r">
             <van-button type="info" size="small" @click="getVerify()">{{ $t('areadetail.creat') }}</van-button>

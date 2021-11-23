@@ -11,15 +11,18 @@ export const global = {
   editSuccess: 'edit successfully',
   delSuccess: 'successfully deleted',
   traSuccess: 'Successfully transferred',
-  delSuccessChecked: 'The family has been deleted, and the files stored in ZhiTing family cloud disk have been deleted at the same time',
-  isDelChecked: 'And the files stored in ZhiTing family cloud disk have been deleted at the same time',
+  delSuccessChecked: 'The family has been deleted, and the files stored in the Zhiting Cloud Disk have been deleted at the same time',
+  isDelChecked: 'At the same time delete files stored in Zhiting Cloud Disk',
   add: 'add',
+  recover: 'recover',
+  recovering: 'resuming...',
   del: 'delete',
   update: 'update',
   opFail: 'operation failed',
   finish: 'finish',
   filter: 'filter',
   confirm: 'confirm',
+  cancel: 'cancel',
   weak: 'no network yet',
   retry: 'retry',
   netWorkErr: 'network error',
@@ -41,6 +44,18 @@ export const global = {
   colorTempName: 'Color temperature',
   brightnessName: 'Brightness',
   uploaderSuccess: 'Uploaded successfully',
+  normal: 'normal',
+  warn: 'warn',
+  error: 'error',
+  other: 'other',
+  trace: 'trace',
+  debug: 'debug',
+  fatal: 'fatal',
+  panic: 'panic',
+  noMore: 'no more',
+  updateSuccess: 'update completed',
+  updateFail: 'update failed',
+  deleting: 'deleting...',
 }
 
 export const home = {
@@ -51,7 +66,7 @@ export const home = {
 
 export const owner = {
   position: 'family/company',
-  pan: 'zhiting pan',
+  pan: 'Zhiting Cloud Disk',
   support: 'support brand',
   platform: 'third-party platform',
   lang: 'language',
@@ -65,14 +80,49 @@ export const owner = {
   certificateDesc1: 'members can connect to the smart center on any mobile phone/tablet',
   certificateTitle2: 'not allowed to retrieve',
   certificateDesc2: 'members cannot connect again after changing their mobile phones/tablets or uninstalling the APP',
-  certificateSetTip: 'you can go to the Professional Edition-Home-Smart Center to modify the selected items'
+  certificateSetTip: 'you can go to the Professional Edition-Home-Smart Center to modify the selected items',
+  log: 'log',
+  backup: 'data backup',
+  logSync: 'sync logs to the cloud',
+  logSyncDesc: 'after opening, the log will be automatically uploaded to Zhiting cloud, and provided to Zhiting for diagnosis problems, etc',
+  logging: 'logging',
+  logUpload: 'upload log',
+  logUploading: 'uploading',
+  logUploadTime: 'upload time',
+  logUploadSuccess: 'uploaded successfully',
+  logUploadFail: 'upload failed',
+  logDateFilter: 'date filter',
+  logAllDate: 'all dates',
+  logUploadConfirmTip: 'are you sure to upload the log to Zhiting Cloud?',
+  backupRecord: 'backup record',
+  backupBtn: 'backup',
+  backupConfirmSecTitle: 'restore the backup data to replace the current data, are you sure you want to continue?',
+  backupConfirmContent: '* recovery takes a certain time, and the smart center will be suspended during the recovery process, and it can be used normally after the recovery is over',
+  backupDelSecTitle: 'the backup data cannot be retrieved after deletion. Are you sure you want to continue?',
+  backupLocation: 'backup location: system disk-system partition',
+  backupData: 'the following data will be backed up: all data',
+  backupMarkTip: '* the smart center will be temporarily suspended during the backup process, and it can be used normally after the backup is over',
+  backupMarkPlaceholder: 'please enter remarks',
+  backupStart: 'start backup',
+  backupMarkSecTitle: 'are you sure you want to back up the current data?',
+  backupMarkContent: '* recovery takes a certain time, and the smart center will be suspended during the recovery process, and it can be used normally after the recovery is over',
+  backingUp: 'backing up',
+  backupNeedTime: 'this may take a few minutes to a few hours',
+  backupTime: 'backup time:',
+  backupSuccess: 'successful backup',
+  backupFail: 'Backup failed',
+  backupDate: 'data date and time',
+  backupFailReason: 'reason for failure',
+  recoverSuccess: 'successful recovery',
+  recoverFail: 'recovery failed',
+  protocol: 'User Agreement and Privacy Policy'
 }
 
 export const discover = {
   title: 'Add device',
   scan: 'Scanning',
-  tip1: 'Please make sure the smart device is connected to the power source and connected to the local area network',
-  tip2: 'When adding a brand for the first time, please enter [I-Support Brand] to add the brand',
+  tip1: '1. Please make sure that the device is connected to the power supply and has been reset',
+  tip2: '2. When adding a certain brand of equipment for the first time, please enter [I-Support Brand] to add the brand',
   add: 'Add',
   empty: 'Device not found',
   retry: 'Rescan'
@@ -165,7 +215,7 @@ export const login = {
   passwordEmptyTip: 'please enter the password',
   register: 'register',
   forget: 'forgot password',
-  protocol: 'click OK, the representative has read and agreed to XXXXXX',
+  protocol: 'Please read and tick the agreement',
   profession: 'professional Edition',
   account: 'username',
   accountPlaceholder: 'please enter user name',
@@ -183,7 +233,10 @@ export const login = {
   welcome: 'welcome to join Zhiting pan',
   agree1_1: 'agree to authorize the following information of Zhiting Home (',
   agree1_2: ') to Zhiting pan',
-  panAuth: 'confirm authorization'
+  panAuth: 'confirm authorization',
+  checkedText: 'Read and agree to Zhiting Family Cloud',
+  agreementUser: 'User Agreement',
+  agreementPrivacy: 'Privacy Policy'
 }
 
 export const branddetail = {
@@ -201,7 +254,7 @@ export const brandsupport = {
   title: 'Support brand',
   addPlugin: 'add plugin',
   searchPlaceholder: 'enter the brand name to search',
-  searchTip: 'The following brands of devices can be added. If you need to add other brands, you can click "+" in the upper right corner to add; if the system does not have a corresponding brand plug-in, you can click [Add plug-in] to upload manually',
+  searchTip: 'The following brands of equipment can be added. If you need to add other brands, you can click the search icon in the upper right corner to add; if the system does not have a corresponding brand plug-in, you can switch to the manual upload plug-in in [Creation]',
   sheetName: 'title',
   uploadTitle: 'click upload plugin',
   uploadContent: 'If the system does not have the plug-in, you can upload it manually',
@@ -209,13 +262,20 @@ export const brandsupport = {
   added: 'added',
   total: 'total',
   plugin: 'plugin',
-  acceptZip: 'Please upload the compressed package in zip format'
+  acceptZip: 'Please upload the compressed package in zip format',
+  addFail: 'add failed'
 }
 
 export const devicedetail = {
   title: 'Device details',
   update: 'Firmware update',
-  power: 'Rights Management'
+  power: 'advanced settings',
+  softwareUpgrade: 'software upgrade',
+  currentVersion: 'current version',
+  checkVersion: 'check for upgrade',
+  latestVersion: 'currently the latest version',
+  checkNewVersion: 'check that there is a new version',
+  isUpdate: 'whether to upgrade'
 }
 
 export const devicemanage = {
@@ -283,7 +343,7 @@ export const addlist = {
 }
 
 export const third = {
-  title: 'Third platform',
+  title: 'Third-party platform',
   du: 'xiaodu',
   tm: 'tmall elf',
   duTitle: 'Connect to Baidu Xiaodu',
@@ -471,4 +531,12 @@ export const deviceAttr = {
   hue: 'hue',
   saturation: 'saturation',
   rgb: 'rgb'
+}
+
+export const protocol = {
+  title: 'User Agreement and Privacy Policy',
+  privacyPolicy: 'Privacy Policy',
+  userAgreement: 'User Agreement',
+  agreementTitle: 'User Agreement',
+  privacyTitle: 'Privacy Policy'
 }

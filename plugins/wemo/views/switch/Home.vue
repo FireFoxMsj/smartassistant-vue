@@ -3,10 +3,17 @@
     <OfflineNotice
       :show="!isOnline"
       :loading="isFleshing"
-      @onReflesh="reflesh"/>
+      @onRefresh="refresh"/>
     <div class="device">
-      <div class="empty-box" v-if="loading">
-        <van-loading v-if="loading" size=".4rem" color="#0094ff" vertical>加载中...</van-loading>
+      <!-- 无数据 -->
+      <div v-if="switchList.length === 0" class="switch-box">
+        <div class="single-open switch-off">
+          <div class="light"></div>
+          <div class="btn-box">
+            <div class="open-btn"></div>
+            <p class="btn-word">开关</p>
+          </div>
+        </div>
       </div>
       <!-- 单开 -->
       <div v-if="switchList.length === 1" class="switch-box">
@@ -60,7 +67,7 @@
 
 <script>
 import { mapGetters } from 'vuex'
-import OfflineNotice from '../../components/OfflineNotice.vue'
+import OfflineNotice from '../../../components/OfflineNotice.vue'
 
 export default {
   name: 'home',
@@ -69,8 +76,6 @@ export default {
   },
   data() {
     return {
-      switchType: 'switchThird',
-      loading: false,
       isOn: false, // 灯是否打开
       isOnline: true, // 设备在线离线状态
       isFleshing: false, // 是否在刷新
@@ -84,26 +89,26 @@ export default {
         type: 'info',
         instance_id: 2,
         attributes: []
-      }
+      },
+      deviceName: ''
     }
   },
   computed: {
     ...mapGetters(['websocket', 'identity', 'deviceId', 'pluginId']),
-    deviceName() {
-      const attrs = this.switchInfo.attributes || []
-      const nameInfo = attrs.find(item => item.attribute === 'name')
-      return nameInfo ? nameInfo.val : '开关'
-    }
+    // deviceName() {
+    //   const attrs = this.switchInfo.attributes || []
+    //   const nameInfo = attrs.find(item => item.attribute === 'name')
+    //   return nameInfo ? nameInfo.val : '开关'
+    // }
   },
   methods: {
     // 刷新
-    reflesh() {
+    refresh() {
       this.isFleshing = true
       this.getDeviceState()
     },
     // 获取设备初始值
     getDeviceState() {
-      this.loading = true
       this.stateId = Number(`1${Date.now()}`)
       // 获取初始值
       this.websocket.send({
@@ -174,7 +179,6 @@ export default {
           return
         }
         this.isOnline = true
-        this.loading = false
         let obj = {}
         const arr = []
         const list = msgJson.result.device.instances || []
@@ -206,6 +210,10 @@ export default {
     },
   },
   created() {
+    const { query } = this.$route
+    if (query.name) {
+      this.deviceName = query.name
+    }
     // 初始设备值
     this.getDeviceState()
     // 处理ws信息
@@ -341,6 +349,17 @@ export default {
   }
   .revise{
     width: .4rem;
+  }
+}
+.default-box{
+  height: 100%;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  img{
+    width: 2.8rem;
+    height: 2.8rem;
   }
 }
 </style>

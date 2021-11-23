@@ -162,6 +162,8 @@ export default {
       time = `${mon}-${day} ${hours}:${minu}`
     } if (type === 'YY-MM-DD hh:mm') {
       time = `${year}-${mon}-${day} ${hours}:${minu}`
+    } if (type === 'yymmdd') {
+      time = `${year}${mon}${day}`
     }
     return time
   },

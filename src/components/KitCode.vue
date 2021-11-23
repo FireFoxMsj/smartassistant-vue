@@ -20,7 +20,6 @@
   </div>
 </template>
 <script>
-import { mapGetters } from 'vuex'
 
 export default {
   name: 'kitCode',
@@ -39,13 +38,11 @@ export default {
       msgId: ''
     }
   },
-  computed: {
-    ...mapGetters(['websocket']),
-  },
   watch: {
     code(code) {
       this.$refs.codeInput.focus()
       this.code = this.code.replace(/\s+/g, '')
+      this.errorInfo = ''
       if (code.length === 8) {
         this.autoRequest(code)
       }
@@ -60,45 +57,24 @@ export default {
     },
     // 进行home-kit码匹配
     autoRequest(code) {
-      // 发送发现指令
-      this.msgId = Date.now()
-      this.websocket.send({
-        id: this.msgId,
-        domain: 'homekit',
-        service: 'set_attributes',
-        identity: this.queryData.identity,
-        service_data: {
-          attributes: [
-            {
-              attribute: 'pin',
-              instance_id: this.queryData.instance_id,
-              val: code
-            }
-          ]
-        }
-      })
-      // 接受消息
-      this.websocket.onmessage((data) => {
-        const msg = JSON.parse(data)
-        if (msg.id === this.msgId) {
-          if (msg.success) {
-            // 跳转至设备详情页
-            setTimeout(() => {
-              // 跳转至设备详情页
-              this.$router.push({
-                name: 'deviceConnect',
-                query: this.queryData
-              })
-            }, 1000)
-          } else {
-            this.errorInfo = '设置失败'
-          }
-        }
+      this.queryData.code = code
+      const device = Object.assign({}, this.queryData)
+      if (device.error) {
+        delete device.error
+      }
+      // 跳转至设备详情页
+      this.$router.push({
+        name: 'deviceConnect',
+        query: device
       })
     }
   },
   mounted() {
     this.queryData = this.$route.query
+    if (this.$route.query.error) {
+      this.errorInfo = '设置代码不正确，请重新输入！'
+      this.code = ''
+    }
     // this.$nextTick(() => {
     //   this.$refs.codeInput.focus()
     // })

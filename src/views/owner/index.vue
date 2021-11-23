@@ -44,6 +44,11 @@
         <span>{{ $t('owner.lang') }}</span>
         <van-icon name="arrow" class="right-icon"/>
       </div>
+      <div class="brand-item" @click="protocol">
+        <img src="../../assets/shield-icon.png" class="icon-img"/>
+        <span>{{ $t('owner.protocol') }}</span>
+        <van-icon name="arrow" class="right-icon"/>
+      </div>
     </div>
     <!-- 语言切换 -->
     <div class="lang-part">
@@ -163,12 +168,21 @@ export default {
     },
     toSupport() {
       this.$router.push({
-        name: 'brandSupport'
+        name: 'brandSupport',
+        query: {
+          type: 'system'
+        }
       })
     },
     toThirdPlatform() {
       this.$router.push({
         name: 'thirdPlatform'
+      })
+    },
+    // 跳转用户协议
+    protocol() {
+      this.$router.push({
+        name: 'protocol'
       })
     }
   },

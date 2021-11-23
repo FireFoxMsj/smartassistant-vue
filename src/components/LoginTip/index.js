@@ -4,7 +4,8 @@ import LoginTipVue from './index.vue'
 const LoginTipConstructor = Vue.extend(LoginTipVue)
 const instance = new LoginTipConstructor()
 const LoginTip = {
-  show: (name) => {
+  show: (name, status = 5012) => {
+    instance.status = status
     instance.isShow = true
     instance.areaName = name
     instance.$mount()

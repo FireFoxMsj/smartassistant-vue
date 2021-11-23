@@ -2,11 +2,11 @@ const path = require('path')
 
 const resolve = dir => path.join(__dirname, dir)
 // 远程代理Ip
-// const baseUrl = 'http://192.168.22.123:9020'
-const baseUrl = 'http://192.168.22.106:37965'
+const baseUrl = 'http://192.168.22.123:9020'
+// const baseUrl = 'http://192.168.22.69:37965'
 
 // 输出文件夹 智能输出为dist 插件输出为yeelight
-const outputDir = process.env.PLUGIN_NAME ? 'plugin' : 'dist'
+const outputDir = process.env.PLUGIN_NAME ? `./plugin/${process.env.PLUGIN_NAME}` : 'dist'
 
 // const vConsole = require('vconsole-webpack-plugin')
 

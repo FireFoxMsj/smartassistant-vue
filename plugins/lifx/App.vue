@@ -13,7 +13,7 @@ import { getRemote } from '../../config/index'
 export default {
   name: 'app',
   methods: {
-    ...mapActions(['setWebsocket', 'setIdentity', 'setDeviceId']),
+    ...mapActions(['setWebsocket', 'setIdentity', 'setDeviceId', 'setPluginId']),
     // 浏览器地址转化
     getUrlParams(url) {
       const str = url.substr(url.indexOf('?') + 1)
@@ -29,7 +29,7 @@ export default {
     toDeviceDetail(query) {
       const { model } = query
       // 灯
-      const light = ['LIFX Mini White', 'LIFX Mini White to Warm', 'LIFX Color']
+      const light = ['LIFX Mini White', 'LIFX Mini White to Warm', 'LIFX Color', 'LIFX BR30 Night Vision', 'LIFX BR30', 'LIFX Candle', 'LIFX Candle White to Warm', 'LIFX A19', 'LIFX A19 Night Vision', 'LIFX Mini Color', 'LIFX Color', 'LIFX GU10']
       if (light.includes(model)) {
         this.$router.replace({
           name: 'light',
@@ -50,6 +50,9 @@ export default {
     // 设置设备唯一标识
     const { identity } = params
     this.setIdentity(identity)
+    // 设置插件唯一id
+    const { pluginId } = params
+    this.setPluginId(pluginId)
     // 生成连接 并设置全局对象
     const ws = new Socket({
       url: `${getRemote()}?token=${token}&sa_id=${saId}`,

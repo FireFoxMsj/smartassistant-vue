@@ -11,6 +11,11 @@ export default new Router({
   base: process.env.BASE_URL,
   routes: [
     {
+      path: '/switch',
+      name: 'switch',
+      component: load('switch/Home.vue'),
+    },
+    {
       path: '/light',
       name: 'light',
       component: load('light/Home.vue'),

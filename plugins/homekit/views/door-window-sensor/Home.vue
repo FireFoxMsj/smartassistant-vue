@@ -3,7 +3,7 @@
     <OfflineNotice
       :show="!isOnline"
       :loading="isFleshing"
-      @onReflesh="refresh"/>
+      @onRefresh="refresh"/>
     <div class="device" :class="{'on': isOn}">
       <div class="battery"><span class="battery-icon"><img src="../../assets/body-sensor/battery.png" alt=""></span><span class="battery-percentage">20%</span></div>
       <div class="sensor-box">
@@ -23,7 +23,7 @@
 
 <script>
 import { mapGetters } from 'vuex'
-import OfflineNotice from '../../components/OfflineNotice.vue'
+import OfflineNotice from '../../../components/OfflineNotice.vue'
 
 const onImg = require('../../assets/body-sensor/go-off.png')
 const offImg = require('../../assets/body-sensor/go-on.png')

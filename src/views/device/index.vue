@@ -78,6 +78,9 @@
                 class="device-btn"
                 :class="[device.power ? 'device-btn--on' : 'device-btn--off']"
                 @click.stop="operateDevice(device)"></button>
+              <div v-else class="device-switch">
+                <span v-for="(power,index) in device.switch_list" :key="index">{{power.val==='on'?'开':'关'}} <span class="line">|</span></span>
+              </div>
               </div>
           </div>
           <div
@@ -122,7 +125,8 @@ export default {
       deviceList: [],
       loading: false,
       isWeak: false,
-      position: 0
+      position: 0,
+      switchList: [],
     }
   },
   computed: {
@@ -294,18 +298,30 @@ export default {
             device.isOnline = false
           } else {
             const { instances } = msgJson.result.device
-            const types = ['light_bulb', 'outlet']
+            const types = ['light_bulb', 'outlet', 'switch']
             const operation = instances.find(instance => types.includes(instance.type))
             const { attributes } = operation
             device.instance_id = operation.instance_id
             device.isOnline = true
-            attributes.forEach((attr) => {
-              if (attr.attribute === 'power') {
-                device.power = attr.val === 'on'
-                // 权限控制
-                device.hasPermission = attr.can_control
-              }
-            })
+            if (operation.type === 'switch' && attributes.length > 1) {
+              device.switch_list = []
+              attributes.forEach((attr) => {
+                if (attr.attribute === 'power') {
+                  attr.power = attr.val === 'on'
+                  // 权限控制
+                  attr.hasPermission = attr.can_control
+                  device.switch_list.push(attr)
+                }
+              })
+            } else {
+              attributes.forEach((attr) => {
+                if (attr.attribute === 'power') {
+                  device.power = attr.val === 'on'
+                  // 权限控制
+                  device.hasPermission = attr.can_control
+                }
+              })
+            }
           }
         }
       })
@@ -475,7 +491,7 @@ export default {
   text-align: center;
   line-height: 0.32rem;
 }
-.device-btn {
+.device-btn,.device-switch {
   position: absolute;
   right: 0;
   bottom: 0;
@@ -484,6 +500,18 @@ export default {
   background-color: transparent;
   background-size: 100% 100%;
   border: 0;
+}
+.device-switch{
+  color: #94A5BE;
+  font-size: .2rem;
+  width: auto;
+  height: auto;
+}
+.device-switch .line{
+  margin: 0 .05rem;
+}
+.device-switch span:last-of-type .line{
+  display: none;
 }
 .device-btn--on {
   background-image: url(../../assets/device-btn-on.png);

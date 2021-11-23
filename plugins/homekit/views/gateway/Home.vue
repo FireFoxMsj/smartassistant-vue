@@ -1,7 +1,7 @@
 <template>
   <div class="home">
-    <OfflineNotice :show="!isOnline" :loading="isFleshing" @onReflesh="refresh" />
-    <div class="tab-box">
+    <OfflineNotice :show="!isOnline" :loading="isFleshing" @onRefresh="refresh" />
+    <div class="tab-box" v-if="hasColor">
       <ul class="clearfix">
         <li v-for="(item, index) in tabList" :key="index">
           <a
@@ -13,38 +13,38 @@
         </li>
       </ul>
     </div>
-    <div v-show="isActive===0" class="device" :class="{'on': isOn}">
+    <div v-show="isActive===0" class="device" :class="{'on': isBattery}">
       <div class="radar-part">
         <div class="radar"></div>
-        <div class="dot dot-1" :class="{ 'a-breath': isOn }"></div>
-        <div class="dot dot-2" :class="{ 'a-breath': isOn }"></div>
-        <div class="dot dot-3" :class="{ 'a-breath': isOn }"></div>
-        <div class="dot dot-4" :class="{ 'a-breath': isOn }"></div>
-        <div class="dot dot-5" :class="{ 'a-breath': isOn }"></div>
-        <div class="dot dot-6" :class="{ 'a-breath': isOn }"></div>
-        <div class="dot dot-7" :class="{ 'a-breath': isOn }"></div>
+        <div class="dot dot-1" :class="{ 'a-breath': isBattery }"></div>
+        <div class="dot dot-2" :class="{ 'a-breath': isBattery }"></div>
+        <div class="dot dot-3" :class="{ 'a-breath': isBattery }"></div>
+        <div class="dot dot-4" :class="{ 'a-breath': isBattery }"></div>
+        <div class="dot dot-5" :class="{ 'a-breath': isBattery }"></div>
+        <div class="dot dot-6" :class="{ 'a-breath': isBattery }"></div>
+        <div class="dot dot-7" :class="{ 'a-breath': isBattery }"></div>
         <div class="top-block"></div>
         <div class="bottom-block"></div>
-        <div class="shield" v-if="isOn"><img src="../../assets/gateway/shield-on.png" alt="" /></div>
+        <div class="shield" v-if="isBattery"><img src="../../assets/gateway/shield-on.png" alt="" /></div>
         <div class="shield" v-else><img src="../../assets/gateway/shield-off.png" alt="" /></div>
-        <p>{{isOn?'在家守护中':'守护已关闭'}}</p>
+        <p>{{isBattery?'在家守护中':'守护已关闭'}}</p>
       </div>
     </div>
     <div v-if="isActive===0" class="control">
       <div class="switch-wrap">
         <h3 class="title">
-          <span>守护模式</span> <span class="mode-status" :class="{ on: isOn }">{{isOn?'打开':'关闭'}}</span>
+          <span>守护模式</span> <span class="mode-status" :class="{ on: isBattery }">{{isBattery?'打开':'关闭'}}</span>
         </h3>
         <div class="mode-box">
           <ul class="clearfix">
             <li v-for="(mode, index) in guardModeInfo.guardMode" :key="index">
               <a
                 href="javascript:;"
-                :class="{ active: guardActive === index && isOn }"
+                :class="{ active: guardActive === index && isBattery }"
                 @click="changeMode(mode, index, 'guard')"
               >
                 <div class="icon">
-                  <img :src="guardActive === index && isOn ? mode.onIcon : mode.offIcon" alt="" />
+                  <img :src="guardActive === index && isBattery ? mode.onIcon : mode.offIcon" alt="" />
                 </div>
                 <div class="name">{{ mode.name }}</div>
               </a>
@@ -64,7 +64,7 @@
         </li>
       </ul>
     </div>
-    <div v-show="isActive===1" class="color-box">
+    <div v-show="isActive===1&&hasColor" class="color-box">
       <div id="picker" class="picker-box">
         <svg style="display:none;">
           <defs>
@@ -82,8 +82,8 @@
         </svg>
       </div>
     </div>
-    <div v-show="isActive===1" class="control">
-      <p>亮度 {{ light }}%</p>
+    <div v-show="isActive===1&&permission.brightness" class="control">
+      <p>亮度 {{ getPercent(lightMax, lightMin, light) }}%</p>
       <van-slider
         v-model="light"
         :min="lightMin"
@@ -100,7 +100,7 @@
         </template>
       </van-slider>
     </div>
-    <div v-show="isActive===1" class="device">
+    <div v-show="isActive===1&&permission.power" class="device">
       <van-button
         :class="[isOn ? 'open-btn--on' : 'open-btn--off']"
         :disabled="!isOnline"
@@ -116,7 +116,7 @@
           </template>
         </van-nav-bar>
         <div class="scroll-box">
-          <div class="brand-item" v-for="(item,index) in associateItem" :key="index">
+          <div class="brand-item" v-for="(item,index) in associateItem" :key="index" @click="goSensor(item)">
             <div class="brand-face">
               <img :src="item.url" class="icon-img" />
             </div>
@@ -130,11 +130,10 @@
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
+import { mapActions, mapGetters } from 'vuex'
 import iro from '@jaames/iro'
-import OfflineNotice from '../../components/OfflineNotice.vue'
+import OfflineNotice from '../../../components/OfflineNotice.vue'
 
-const frostOn = require('../../assets/air/frost-on.png')
 const copyIcon = require('../../assets/air/copy.png')
 const frostBigOn = require('../../assets/air/frost-big-on.png')
 const frostBigOff = require('../../assets/air/frost-big-off.png')
@@ -152,7 +151,7 @@ export default {
   },
   data() {
     return {
-      loading: false,
+      isBattery: true, // 是否有电池
       isOn: true, // 灯是否打开
       isOnline: true, // 设备在线离线状态
       isFleshing: false, // 是否在刷新
@@ -161,25 +160,42 @@ export default {
       light: 50, // 亮度
       lightMin: 0, // 亮度最小值
       lightMax: 100, // 亮度最大值
-      tempMin: 0, // 温度最小值
-      tempMax: 100, // 温度最大值
-      temperature: 22, // 温度
-      saId: '', // saId
-      token: '', // 用户token
+      tempMin: 0, // 色温最小值
+      tempMax: 100, // 色温最大值
+      temperature: 0, // 色温
+      hueMin: 0, // 色彩最小值
+      hueMax: 100, // 色彩最大值
+      hue: 0, // 色彩
+      saturationMin: 0, // 饱和度最小值
+      saturationMax: 100, // 饱和度最大值
+      saturation: 0, // 饱和度
+      rgbMax: 16777215, // 色彩最大值
+      rgbMin: 0, // 色彩最小值
+      rgb: 0, // 色彩
+      instanceId: '', // 实例id
+      permission: {
+        brightness: false,
+        color_temp: false,
+        power: false,
+        hue: false, // 色彩
+        saturation: false // 饱和度
+      }, // 用户权限
       stateId: 1,
       isLock: false, // 是否正在操作，正在操作时，状态推送不改变
       lastTime: null,
       modeList: [{ mode: '子设备', statusName: '', icon: copyIcon }],
       associateShow: false,
       associateItem: [
-        { url: '../../assets/gateway/fan-on.png', name: '温湿度传感器', online: false },
+        {
+          url: '../../assets/gateway/fan-on.png', name: '温湿度传感器', path: 'flood-sensor', online: false
+        },
         { url: '../../assets/gateway/fan-on.png', name: '人体传感器', online: false },
         { url: '../../assets/gateway/fan-on.png', name: '门窗传感器', online: false },
         { url: '../../assets/gateway/fan-on.png', name: '烟雾报警器', online: true },
         { url: '../../assets/gateway/fan-on.png', name: '燃气报警器', online: true },
         { url: '../../assets/gateway/fan-on.png', name: '水浸报警器', online: true }
       ],
-      guardActive: 0,
+      guardActive: -1,
       guardModeInfo: {
         name: '自动',
         onIcon: frostBigOn,
@@ -189,17 +205,20 @@ export default {
           {
             name: '在家',
             onIcon: homeBigOn,
-            offIcon: homeBigOff
+            offIcon: homeBigOff,
+            value: 0
           },
           {
             name: '离家',
             onIcon: lockHomeBigOn,
-            offIcon: lockHomeBigOff
+            offIcon: lockHomeBigOff,
+            value: 1
           },
           {
             name: '睡眠',
             onIcon: sleepBigOn,
-            offIcon: sleepBigOff
+            offIcon: sleepBigOff,
+            value: 2
           }
         ]
       },
@@ -208,15 +227,13 @@ export default {
   },
   computed: {
     ...mapGetters(['websocket', 'identity', 'deviceId', 'pluginId']),
-    goImg() {
-      if (this.isOn) {
-        return frostOn
-      }
-      return frostOn
+    hasColor() {
+      return this.permission.hue && this.permission.saturation
     }
   },
   watch: {},
   methods: {
+    ...mapActions(['setSensorData']),
     // 刷新
     refresh() {
       this.isFleshing = true
@@ -224,17 +241,13 @@ export default {
     },
     // 获取设备初始值
     getDeviceState() {
-      this.loading = true
       this.stateId = Number(`1${Date.now()}`)
       // 获取初始值
       this.websocket.send({
         domain: this.pluginId,
         id: this.stateId,
         service: 'get_attributes',
-        identity: this.identity,
-        service_data: {
-          device_id: this.deviceId
-        }
+        identity: this.identity
       })
     },
     // 生成colorPicker组件
@@ -323,15 +336,18 @@ export default {
       const now = Date.now()
       const wait = 500
       if (now - this.lastTime - wait > 0) {
-        this.sendCommand('hue', val.hue)
-        this.sendCommand('saturation', val.saturation)
-        this.lastTime = now
+        if (this.hasColor && this.isActive === 1) {
+          this.sendCommand('hue', val.hue)
+          this.sendCommand('saturation', val.saturation)
+          this.lastTime = now
+        }
       }
     },
     // 处理ws信息
     handleMessage(data) {
       this.$toast.clear()
       const msgJson = JSON.parse(data)
+      console.log(msgJson)
       // 初始化设备信息
       if (msgJson.id === this.stateId) {
         setTimeout(() => {
@@ -342,45 +358,58 @@ export default {
           return
         }
         this.isOnline = true
-        this.loading = false
-        let obj = {}
-        const arr = []
-        const list = msgJson.result.device.instances || []
-        list.forEach((item) => {
-          const power = item.attributes.find(x => x.attribute === 'power')
-          if (item.type === 'switch') {
-            power.instance_id = item.instance_id
-            arr.push(power)
-          } else if (item.type === 'info') {
-            obj = item
+        const { instances } = msgJson.result.device
+        this.setSensorData(msgJson.result.device)
+        const lightBulb = instances.find(item => item.type === 'light_bulb')
+        const motionSensor = instances.find(item => item.type === 'motion_sensor')
+        const securitySystem = instances.find(item => item.type === 'security_system')
+        const lightArry = lightBulb.attributes
+        const securitySystemArry = securitySystem.attributes
+        const motionSensorArry = motionSensor.attributes
+        this.instanceId = lightBulb.instance_id
+        lightArry.forEach((attr) => {
+          if (attr.attribute === 'power') {
+            this.isOn = attr.val === 'on'
+            this.permission.power = attr.can_control
+          } else if (attr.attribute === 'color_temp') {
+            this.temperature = attr.val
+            this.tempMin = attr.min
+            this.tempMax = attr.max
+            this.permission.color_temp = attr.can_control
+          } else if (attr.attribute === 'brightness') {
+            this.light = attr.val
+            this.lightMin = attr.min
+            this.lightMax = attr.max
+            this.permission.brightness = attr.can_control
+          } else if (attr.attribute === 'hue') {
+            this.hueMin = attr.min
+            this.hue = attr.val
+            this.hueMax = attr.max
+            this.permission.hue = attr.can_control
+          } else if (attr.attribute === 'saturation') {
+            this.saturationMin = attr.min
+            this.saturation = attr.val
+            this.saturationMax = attr.max
+            this.permission.saturation = attr.can_control
+          } else if (attr.attribute === 'rgb') {
+            this.rgbMin = attr.min
+            this.rgb = attr.val
+            this.rgbMax = attr.max
+            this.permission.rgb = attr.can_control
           }
         })
-        this.switchInfo = obj
-        this.switchList = arr
-      } else if (msgJson.id === 1) {
-        if (msgJson.success) {
-          this.$toast.success('开关已开启')
-        } else {
-          this.$toast.fail('开启失败')
-        }
-        this.switchList.forEach((item) => {
-          if (item.instance_id === this.targetId) {
-            item.val = item.val === 'on' ? 'off' : 'on'
+        motionSensorArry.forEach((attr) => {
+          if (attr.attribute === 'battery') {
+            this.isBattery = !!attr.val
           }
         })
-      } else if (msgJson.id === -1) {
-        if (msgJson.success) {
-          this.$toast.success('开关已关闭')
-        } else {
-          this.$toast.fail('关闭失败')
-        }
-        this.switchList.forEach((item) => {
-          if (item.instance_id === this.targetId) {
-            item.val = item.val === 'on' ? 'off' : 'on'
+        securitySystemArry.forEach((attr) => {
+          if (attr.attribute === 'current_state') {
+            this.guardActive = attr.val
           }
         })
-      } else if (msgJson.id === 2) {
-        this.$bus.$emit('handleMessage', msgJson)
+        this.colorPicker.color.hsv = { h: this.hue, s: this.saturation, v: 100 }
+        this.isReady = true
       }
     },
     // 获取百分比
@@ -406,6 +435,11 @@ export default {
     // 关闭关联子设备
     onClickLeft() {
       this.associateShow = false
+    },
+    goSensor(params) {
+      this.$router.push({
+        name: params.path
+      })
     }
   },
   created() {
@@ -691,8 +725,7 @@ export default {
     margin-right: -2%;
   }
   ul > li {
-    height: 1.4rem;
-    padding: 0.2rem 0.3rem;
+    padding: 0.3rem 0.3rem;
     box-shadow: 0px 0px 0.2rem 0px rgba(0, 0, 0, 0.1);
     border-radius: 0.2rem;
     margin: 0.2rem 2%;

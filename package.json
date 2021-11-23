@@ -7,17 +7,15 @@
 		"build": "vue-cli-service build",
 		"lint": "vue-cli-service lint",
 		"plugin": "node node-commend.js",
-		"serve:plugin": "vue-cli-service serve --open plugins/homekit/main.js",
-		"build:plugin": "vue-cli-service build plugins/homekit/main.js"
+		"serve:plugin": "vue-cli-service serve --open plugins/kasa/main.js",
+		"build:plugin": "vue-cli-service build plugins/yeelight/main.js"
 	},
-	"husky": {
-		"hooks": {
-			"pre-commit": "lint-staged"
-		}
+	"gitHooks": {
+		"pre-commit": "lint-staged"
 	},
 	"lint-staged": {
-		"src/**": [
-			"eslint --fix",
+		"*.{js,vue}": [
+			"vue-cli-service lint",
 			"git add"
 		]
 	},
@@ -53,7 +51,7 @@
 		"eslint": "^5.16.0",
 		"eslint-plugin-vue": "^5.0.0",
 		"husky": "^6.0.0",
-		"lint-staged": "^10.5.4",
+		"lint-staged": "^8.1.5",
 		"node-sass": "^4.14.1",
 		"postcss-pxtorem": "^5.0.0",
 		"sass-loader": "^8.0.0",

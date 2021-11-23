@@ -32,6 +32,9 @@ export default new Vuex.Store({
     setDeviceId(state, deviceId) {
       state.deviceId = deviceId
     },
+    setpluginId(state, pluginId) {
+      state.pluginId = pluginId
+    },
     setWifiInfo(state, wifiInfo) {
       state.wifiInfo = wifiInfo
     },
@@ -51,6 +54,9 @@ export default new Vuex.Store({
     },
     setDeviceId({ commit }, payload) {
       commit('setDeviceId', payload)
+    },
+    setpluginId({ commit }, payload) {
+      commit('setpluginId', payload)
     },
     setWifiInfo({ commit }, payload) {
       commit('setWifiInfo', payload)

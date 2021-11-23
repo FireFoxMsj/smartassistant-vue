@@ -3,7 +3,7 @@
     <OfflineNotice
       :show="!isOnline"
       :loading="isFleshing"
-      @onReflesh="refresh"/>
+      @onRefresh="refresh"/>
     <div class="device">
       <div class="temp-drag"><span class="degree">22</span><span class="unit">℃</span></div>
       <p>制冷 风速自动 扫风开</p>
@@ -112,7 +112,7 @@
 
 <script>
 import { mapGetters } from 'vuex'
-import OfflineNotice from '../../components/OfflineNotice.vue'
+import OfflineNotice from '../../../components/OfflineNotice.vue'
 
 const frostOn = require('../../assets/air/frost-on.png')
 const frostOff = require('../../assets/air/frost-off.png')

@@ -9,24 +9,34 @@
       <template #left>
         <van-icon name="arrow-left" color="#3F4663"/>
       </template>
+      <template #title>
+        <div class="support-title">
+          <a v-for="(item,index) in tab" :key="index" :class="{'active': active===item.value}" @click="tabs(item)" href="javascript:;">{{item.name}}</a>
+        </div>
+      </template>
       <template #right>
-        <span class="add-plugin" @click="uploadShow = true">{{ $t('brandsupport.addPlugin') }}</span>
+        <van-icon @click="searchShow = true" style="font-weight: 700" name="search" size=".34rem" color="#3F4663" />
       </template>
     </van-nav-bar>
     <!--loading模块-->
     <Loading v-if="loading"></Loading>
     <template v-else>
-      <div class="brand-part">
-        <div class="search-btn" @click="searchShow = true">
-          <van-icon name="search" size="0.34rem" color="#94A5BE"/>
-          <span>{{ $t('brandsupport.searchPlaceholder') }}</span>
-        </div>
-        <p class="tip-word">{{ $t('brandsupport.searchTip') }}</p>
+      <!-- 没有家庭 -->
+      <van-empty
+        v-if="brandList.length===0"
+        class="empty-box"
+        :image="empty"
+        :description="$t('global.empty')"
+      />
+      <div v-else class="brand-part">
+        <p class="tip-word" v-if="active=== 'system'">{{ $t('brandsupport.searchTip') }}</p>
         <div class="brand-list">
           <BrandItem
             v-for="brand in brandList"
             :key="brand.id"
             :brand="brand"
+            :type="active"
+            @update="creatInitList"
             @onClick="handelClick"></BrandItem>
         </div>
       </div>
@@ -43,12 +53,14 @@
               show-action
               shape="round"
               :placeholder="$t('brandsupport.searchPlaceholder')"
+              @input="search"
               @cancel="onCancel"/>
             <div class="search-brand-list">
               <BrandItem
                 v-for="brand in brandList"
                 :key="brand.id"
-                :brand="brand"></BrandItem>
+                :brand="brand"
+                :type="active"></BrandItem>
             </div>
           </div>
         </van-action-sheet>
@@ -69,12 +81,17 @@
           </div>
         </van-action-sheet>
       </div>
+      <!-- 添加插件-->
+      <div class="add-plugin">
+        <van-button v-if="active=== 'creat'" type="info" block @click="uploadShow = true">{{ $t('brandsupport.addPlugin') }}</van-button>
+      </div>
     </template>
   </div>
 </template>
 <script>
-import { mapGetters } from 'vuex'
 import BrandItem from './components/BrandItem.vue'
+
+const empty = require('../../assets/empty.png')
 
 export default {
   name: 'brandSupport',
@@ -83,19 +100,23 @@ export default {
   },
   data() {
     return {
+      empty,
+      active: 'system',
+      tab: [
+        { name: '系统', value: 'system' },
+        { name: '创作', value: 'creat' }
+      ],
       currentBrand: {},
+      historyBrandList: [],
       brandList: [],
       keyword: '',
       searchShow: false,
       uploadShow: false,
-      loading: false
+      loading: false,
     }
   },
-  computed: {
-    ...mapGetters(['websocket'])
-  },
   methods: {
-    // 初始化品牌列表
+    // 初始系统化品牌列表
     initList() {
       this.loading = true
       const params = {
@@ -112,13 +133,66 @@ export default {
           item.isInstall = false
           return item
         })
+        this.historyBrandList = brands.map((item) => {
+          item.isInstall = false
+          return item
+        })
+      })
+    },
+    // 创作化品牌列表
+    creatInitList() {
+      this.loading = true
+      const params = {
+        list_type: 1,
+      }
+      this.http.creatPlugins(params).then((res) => {
+        this.loading = false
+        if (res.status !== 0) {
+          return
+        }
+        if (res.data.plugins) {
+          const { plugins } = res.data || []
+          plugins.forEach((item) => {
+            item.isInstall = false
+          })
+          this.brandList = plugins
+          this.historyBrandList = plugins
+        } else {
+          this.brandList = []
+          this.historyBrandList = []
+        }
       })
     },
     onClickLeft() {
-      this.$router.go(-1)
+      // this.$router.go(-1)
+      this.$router.push({ name: 'owner' })
+    },
+    search(val) {
+      if (val) {
+        const arr = []
+        this.historyBrandList.forEach((item) => {
+          if (item.name.indexOf(val.replace(/^\s*|\s*$/g, '').toString().toLowerCase()) > -1 || item.name.indexOf(val.replace(/^\s*|\s*$/g, '').toString().toUpperCase()) > -1) {
+            arr.push(item)
+          }
+        })
+        this.brandList = arr
+      } else {
+        this.brandList = this.historyBrandList
+      }
     },
     onCancel() {
       this.searchShow = false
+    },
+    tabs(params) {
+      this.$router.replace({ name: 'brandSupport', query: { type: params.value } })
+      this.historyBrandList = []
+      this.brandList = []
+      this.active = params.value
+      if (this.active === 'system') {
+        this.initList()
+      } else {
+        this.creatInitList()
+      }
     },
     // 处理列表点击
     handelClick(brand) {
@@ -126,7 +200,8 @@ export default {
     },
     // 返回布尔值
     beforeRead(file) {
-      if (file.type !== 'application/x-zip-compressed') {
+      console.log(file)
+      if (file.type !== 'application/x-zip-compressed' && file.type !== 'application/zip') {
         this.$toast(this.$t('brandsupport.acceptZip'))
         return
       }
@@ -142,50 +217,53 @@ export default {
         }
         this.$toast.success(this.$t('global.uploaderSuccess'))
         this.uploadShow = false
-        this.initList()
+        this.creatInitList()
       })
     }
   },
-  created() {
-    this.initList()
-  },
   mounted() {
-    this.websocket.onmessage((data) => {
-      // 回调是否成功
-      const msgJson = JSON.parse(data)
-      const { success } = msgJson
-      if (!success) {
-        return
-      }
-      let isFinish = true
-      this.currentBrand.plugins.forEach((plugin) => {
-        // 如果是添加
-        if (msgJson.id === plugin.installId) {
-          plugin.is_added = true
-          plugin.is_newest = true
-        }
-        // 如果是更新
-        if (msgJson.id === plugin.updateId) {
-          plugin.is_newest = true
-        }
-        // 全部操作是否完成
-        if (!plugin.is_added || !plugin.is_newest) {
-          isFinish = false
-        }
-      })
-      if (isFinish) {
-        this.currentBrand.isInstall = false
-        this.currentBrand.is_added = true
-        this.currentBrand.is_newest = true
-      }
-    })
+    if (this.$route.query) {
+      const { type } = this.$route.query
+      this.active = type || 'system'
+    }
+    if (this.active === 'creat') {
+      this.creatInitList()
+    } else {
+      this.initList()
+    }
   }
 }
 </script>
 <style lang="scss" scoped>
-.add-plugin {
-  font-size: 0.28rem;
+.support-title a{
+  display: inline-block;
+  margin: 0 .2rem;
+  padding: .2rem .1rem;
+  color: #94A5BE;
+  position: relative;
+}
+.support-title a.active{
   color: #3F4663;
+}
+.support-title a.active:after{
+  content: "";
+  width: .4rem;
+  height: .06rem;
+  border-radius: .06rem;
+  background-color: #2DA3F6;
+  position: absolute;
+  left: 50%;
+  margin-left: -.2rem;
+  bottom: .1rem;
+}
+.add-plugin {
+  position: fixed;
+  width: 100%;
+  max-width: 750px;
+  transform: translateX(-50%);
+  bottom: .2rem;
+  left: 50%;
+  padding: 0 .3rem;
 }
 .brand-part {
   padding: 0 0.27rem;
@@ -209,6 +287,8 @@ export default {
   line-height: 0.36rem;
   color: #94A5BE;
   text-align: justify;
+  border-top: 1px solid #eeeeee;
+  padding-top: .2rem;
 }
 .brand-list {
   border-top: 0.01rem solid #eeeeee;
@@ -290,5 +370,12 @@ export default {
 }
 .upload-box >>> .van-popup {
   background-color: transparent;
+}
+.empty-box{
+  height: 7rem;
+}
+.empty-box >>> .van-empty__image img,.empty-box >>> .van-empty__image{
+  width: 2rem;
+  height: auto;
 }
 </style>

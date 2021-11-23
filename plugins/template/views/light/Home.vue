@@ -3,7 +3,7 @@
     <OfflineNotice
       :show="!isOnline"
       :loading="isFleshing"
-      @onReflesh="reflesh"/>
+      @onRefresh="refresh"/>
     <div v-show="hasColor" class="color-box">
       <p>{{ deviceName }}</p>
       <div id="picker" class="picker-box">
@@ -73,7 +73,7 @@
 <script>
 import { mapGetters } from 'vuex'
 import iro from '@jaames/iro'
-import OfflineNotice from '../../components/OfflineNotice.vue'
+import OfflineNotice from '../../../components/OfflineNotice.vue'
 
 const onImg = require('../../assets/light/linght-on.png')
 const offImg = require('../../assets/light/linght-off.png')
@@ -149,7 +149,7 @@ export default {
       })
     },
     // 刷新
-    reflesh() {
+    refresh() {
       this.isReady = false
       this.isFleshing = true
       this.initData()

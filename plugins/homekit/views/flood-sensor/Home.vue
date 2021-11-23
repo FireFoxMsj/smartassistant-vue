@@ -1,11 +1,7 @@
 <template>
   <div class="home">
-    <OfflineNotice
-      :show="!isOnline"
-      :loading="isFleshing"
-      @onReflesh="refresh"/>
     <div class="device" :class="{'on': isOn}">
-      <div class="battery"><span class="battery-icon"><img src="../../assets/body-sensor/battery.png" alt=""></span><span class="battery-percentage">20%</span></div>
+      <div class="battery"><span class="battery-icon"><img src="../../assets/body-sensor/battery.png" alt=""></span><span class="battery-percentage" :class="{'high': battery>50}">{{battery}}%</span></div>
       <div class="sensor-box">
         <div class="ring-1"></div>
         <div class="ring-2"></div>
@@ -23,142 +19,48 @@
 
 <script>
 import { mapGetters } from 'vuex'
-import OfflineNotice from '../../components/OfflineNotice.vue'
-
-const onImg = require('../../assets/body-sensor/go-off.png')
-const offImg = require('../../assets/body-sensor/go-on.png')
 
 export default {
   name: 'home',
-  components: {
-    OfflineNotice
-  },
   data() {
     return {
-      loading: false,
-      isOn: false, // 灯是否打开
-      isOnline: true, // 设备在线离线状态
-      isFleshing: false, // 是否在刷新
-      saId: '', // saId
-      token: '', // 用户token
-      stateId: 1,
-      isLock: false, // 是否正在操作，正在操作时，状态推送不改变
-      lastTime: null,
+      isOn: true, // 是否开启
+      battery: 0,
     }
   },
   computed: {
-    ...mapGetters(['websocket', 'identity', 'deviceId', 'pluginId']),
-    goImg() {
-      if (this.isOn) {
-        return onImg
-      }
-      return offImg
-    },
+    ...mapGetters(['websocket', 'identity', 'deviceId', 'pluginId', 'sensorData']),
   },
   methods: {
-    // 刷新
-    refresh() {
-      this.isFleshing = true
-      this.getDeviceState()
-    },
     // 获取设备初始值
-    getDeviceState() {
-      this.loading = true
-      this.stateId = Number(`1${Date.now()}`)
-      // 获取初始值
-      this.websocket.send({
-        domain: this.pluginId,
-        id: this.stateId,
-        service: 'get_attributes',
-        identity: this.identity,
-        service_data: {
-          device_id: this.deviceId
-        }
-      })
-    },
-    // 发送操作指令
-    sendCommand(id, attribute, instanceId, val) {
-      this.websocket.send({
-        id,
-        domain: this.pluginId,
-        service: 'set_attributes',
-        identity: this.identity,
-        service_data: {
-          attributes: [
-            {
-              attribute,
-              instance_id: instanceId,
-              val
-            }
-          ]
-        }
-      })
-    },
-    // 处理ws信息
-    handleMessage(data) {
-      this.$toast.clear()
-      const msgJson = JSON.parse(data)
-      // 初始化设备信息
-      if (msgJson.id === this.stateId) {
-        setTimeout(() => {
-          this.isFleshing = false
-        }, 1000)
-        if (!msgJson.result) {
-          this.isOnline = false
-          return
-        }
-        this.isOnline = true
-        this.loading = false
-        let obj = {}
-        const arr = []
-        const list = msgJson.result.device.instances || []
-        list.forEach((item) => {
-          const power = item.attributes.find(x => x.attribute === 'power')
-          if (item.type === 'switch') {
-            power.instance_id = item.instance_id
-            arr.push(power)
-          } else if (item.type === 'info') {
-            obj = item
+    getSensorData() {
+      console.log(this.sensorData)
+      if (this.sensorData) {
+        const { instances } = this.sensorData
+        const waterLeakSensor = instances.find(item => item.type === 'water_leak_sensor')
+        const waterLeakSensorArry = waterLeakSensor.attributes
+        this.instanceId = waterLeakSensor.instance_id
+        waterLeakSensorArry.forEach((attr) => {
+          if (attr.attribute === 'battery') {
+            this.battery = this.getPercent(attr.max, attr.min, attr.val)
+          } else if (attr.attribute === 'leak_detected') {
+            this.isOn = !!attr.val
           }
         })
-        this.switchInfo = obj
-        this.switchList = arr
-      } else if (msgJson.id === 1) {
-        if (msgJson.success) {
-          this.$toast.success('开关已开启')
-        } else {
-          this.$toast.fail('开启失败')
-        }
-        this.switchList.forEach((item) => {
-          if (item.instance_id === this.targetId) {
-            item.val = item.val === 'on' ? 'off' : 'on'
-          }
-        })
-      } else if (msgJson.id === -1) {
-        if (msgJson.success) {
-          this.$toast.success('开关已关闭')
-        } else {
-          this.$toast.fail('关闭失败')
-        }
-        this.switchList.forEach((item) => {
-          if (item.instance_id === this.targetId) {
-            item.val = item.val === 'on' ? 'off' : 'on'
-          }
-        })
-      } else if (msgJson.id === 2) {
-        this.$bus.$emit('handleMessage', msgJson)
       }
+    },
+    // 获取百分比
+    getPercent(max, min, value) {
+      let res = Math.round(Number(((value - min) / (max - min)) * 100))
+      if (res < 0) {
+        res = 0
+      }
+      return res
     },
   },
   created() {
     // 初始设备值
-    this.getDeviceState()
-    // 处理ws信息
-    this.websocket.onmessage((data) => {
-      this.handleMessage(data)
-    })
-    // 接收bus事件
-    this.$bus.$on('update', this.update)
+    this.getSensorData()
   }
 }
 </script>
@@ -186,6 +88,9 @@ export default {
     font-weight: 700;
     color: #F3A934;
     margin-left: .05rem;
+  }
+  .battery-percentage.high{
+    color: #1EE8D1;
   }
 }
 .sensor-box{
@@ -234,6 +139,29 @@ export default {
 }
 .on .ring-3{
   background: rgba(54, 153, 255, 0.1);
+}
+.on .ring-2, .on .ring-1{
+  -webkit-animation-fill-mode: both;
+  -moz-animation-fill-mode: both;
+  -ms-animation-fill-mode: both;
+  animation-fill-mode: both;
+  opacity: 0;
+  -webkit-animation: ballScale 4s 0s linear infinite;
+  -moz-animation: ballScale 4s 0s linear infinite;
+  -ms-animation: ballScale 4s 0s linear infinite;
+  animation: ballScale 4s 0s linear infinite;
+}
+.on .ring-3 {
+  -webkit-animation-delay: 1s;
+  -moz-animation-delay: 1s;
+  -ms-animation-delay: 1s;
+  animation-delay: 1s;
+}
+.on .ring-2 {
+  -webkit-animation-delay: 2s;
+  -moz-animation-delay: 2s;
+  -ms-animation-delay: 2s;
+  animation-delay: 2s;
 }
 .details{
   flex-direction: row;
@@ -285,5 +213,25 @@ export default {
 }
 .on .status-text{
   color: #3699FF;
+}
+
+@-webkit-keyframes ballScale{
+  0%{-webkit-transform:scale(1);transform:scale(1);opacity:1}
+  100%{-webkit-transform:scale(1.5);transform:scale(1.5);opacity:0}
+}
+
+@-moz-keyframes ballScale{
+  0%{-moz-transform:scale(1);transform:scale(1);opacity:1}
+  100%{-moz-transform:scale(1.5);transform:scale(1.5);opacity:0}
+}
+
+@-ms-keyframes ballScale{
+  0%{-ms-transform:scale(1);transform:scale(1);opacity:1}
+  100%{-ms-transform:scale(1.5);transform:scale(1.5);opacity:0}
+}
+
+@keyframes ballScale{
+  0%{-webkit-transform:scale(1);transform:scale(1); opacity:1}
+  100%{-webkit-transform:scale(1.5);transform:scale(1.5); opacity:0}
 }
 </style>

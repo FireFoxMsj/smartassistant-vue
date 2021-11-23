@@ -24,28 +24,11 @@
             <div class="float-r" v-show="!isInstall && !isInsert">
               <span v-if="!pluginInfo.is_added" class="op-btn" @click.stop="install">{{ $t('global.add') }}</span>
               <span v-else class="op-btn" @click.stop="handleDelBtn">{{ $t('global.del') }}</span>
-              <span v-if="!pluginInfo.is_newest && pluginInfo.is_added" class="op-btn mgl20" @click.stop="update">{{ $t('global.update') }}</span>
+              <span v-if="!pluginInfo.is_newest && pluginInfo.is_added" class="op-btn mgl20" @click.stop="install">{{ $t('global.update') }}</span>
             </div>
           </div>
-          <p class="version">{{ $t('plugindetail.version') }}：{{ pluginInfo.version }}</p>
-          <p class="desc">{{ pluginInfo.info }}</p>
-        </div>
-      </div>
-      <div class="device-part">
-        <p class="device-word">{{ $t('plugindetail.support') }}</p>
-        <div class="device-list">
-          <div
-            v-for="device in deviceList"
-            :key="device.name"
-            class="device-item">
-            <div class="device-pic">
-              <CommonImage
-                class="img"
-                fit="contain"
-                :src="device.logo_url"/>
-            </div>
-            <p class="device-name">{{ device.name }}</p>
-          </div>
+          <p class="version">{{ $t('plugindetail.version') }}v{{ pluginInfo.version }}</p>
+          <p class="desc" v-html="pluginInfo.info"></p>
         </div>
       </div>
     </template>
@@ -78,10 +61,7 @@ export default {
     }
   },
   computed: {
-    ...mapGetters(['websocket', 'isInsert']),
-    deviceList() {
-      return this.pluginInfo.support_devices || []
-    }
+    ...mapGetters(['isInsert']),
   },
   methods: {
     onClickLeft() {
@@ -96,61 +76,51 @@ export default {
           return
         }
         this.pluginInfo = res.data.plugin
+        this.pluginInfo.info = res.data.plugin.info.replace(/\n/g, '<br/>')
       }).catch(() => {
         this.loading = false
       })
     },
     // 添加插件
     install() {
-      const plugin = this.pluginInfo
+      const plugins = [this.pluginInfo.id]
+      const params = {
+        plugins
+      }
       this.isInstall = true
-      this.msgId = Date.now()
-      this.websocket.send({
-        id: this.msgId,
-        domain: 'plugin',
-        service: 'install',
-        service_data: {
-          plugin_id: plugin.id
+      this.http.installPlugin(this.pluginInfo.brand, params).then((res) => {
+        this.isInstall = false
+        if (res.status !== 0) {
+          return
         }
-      })
-    },
-    // 更新插件
-    update() {
-      const plugin = this.pluginInfo
-      this.isInstall = true
-      this.updateMsgId = Date.now()
-      this.websocket.send({
-        id: this.updateMsgId,
-        domain: 'plugin',
-        service: 'update',
-        service_data: {
-          plugin_id: plugin.id
-        }
+        this.pluginInfo.is_added = true
+        this.pluginInfo.is_newest = true
+      }).catch(() => {
+        this.isInstall = false
       })
     },
     // 点击删除按钮
     handleDelBtn() {
       let res = ''
       const plugin = this.pluginInfo
-      plugin.support_devices.forEach((device) => {
-        res += `${device.name}、`
-      })
+      res = plugin.name
       res = res.replace(/、$/, '')
       this.deleteTip = `${this.$t('branddetail.delContent1')}${res}${this.$t('branddetail.delContent2')}`
       this.sureShow = true
     },
     deletePlugin() {
-      // 删除插件
-      this.websocket.send({
-        id: 1,
-        domain: 'plugin',
-        service: 'remove',
-        service_data: {
-          plugin_id: this.pluginInfo.id
+      this.isInstall = true
+      this.http.deleteCreatPlugin(this.pluginInfo.id).then((res) => {
+        this.isInstall = false
+        if (res.status !== 0) {
+          return
         }
+        this.pluginInfo.is_added = false
+        // 删除成功提示
+        this.$toast(this.$t('global.delSuccess'))
+      }).catch(() => {
+        this.isInstall = false
       })
-      // 删除成功提示
-      this.$toast(this.$t('global.delSuccess'))
     }
   },
   created() {
@@ -159,30 +129,13 @@ export default {
     if (this.pluginId) {
       this.getPluginDetail()
     }
-  },
-  mounted() {
-    this.websocket.onmessage((data) => {
-      // 回调是否成功
-      const msgJson = JSON.parse(data)
-      if (msgJson.id === this.msgId) {
-        const { success } = msgJson
-        if (success) {
-          this.isInstall = false
-          this.currentPlugin.is_added = true
-        }
-      }
-      if (msgJson.id === this.updateMsgId) {
-        const { success } = msgJson
-        if (success) {
-          this.isInstall = false
-          this.currentPlugin.is_newest = true
-        }
-      }
-    })
   }
 }
 </script>
 <style lang="scss" scoped>
+.mgl20 {
+  margin-left: 0.2rem;
+}
 .plugin-part {
   background: #ffffff;
   box-shadow: 0 0 0.2rem 0 rgba(21, 21, 21, 0.1);

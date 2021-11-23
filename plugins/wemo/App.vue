@@ -13,7 +13,7 @@ import { getRemote } from '../../config/index'
 export default {
   name: 'app',
   methods: {
-    ...mapActions(['setWebsocket', 'setIdentity', 'setDeviceId']),
+    ...mapActions(['setWebsocket', 'setIdentity', 'setDeviceId', 'setPluginId']),
     // 浏览器地址转化
     getUrlParams(url) {
       const str = url.substr(url.indexOf('?') + 1)
@@ -57,6 +57,9 @@ export default {
     // 设置设备唯一标识
     const { identity } = params
     this.setIdentity(identity)
+    // 设置插件id
+    const { pluginId } = params
+    this.setPluginId(pluginId)
     // 生成连接 并设置全局对象
     const ws = new Socket({
       url: `${getRemote()}?token=${token}&sa_id=${saId}`,

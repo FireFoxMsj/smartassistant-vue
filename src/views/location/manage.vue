@@ -61,9 +61,9 @@
   </div>
 </template>
 <script>
-import NameSheet from '@/components/NameSheet.vue'
 import Draggable from 'vuedraggable'
 import { mapGetters } from 'vuex'
+import NameSheet from '@/components/NameSheet.vue'
 
 const emptyImg = require('../../assets/empty-icon.png')
 

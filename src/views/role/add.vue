@@ -30,7 +30,7 @@
           <p
             @click="selectAll(deviceRoleList)"
             class="float-r"
-            :class="[wichClass(deviceRoleList)]">
+            :class="[whichClass(deviceRoleList)]">
             <span @click.stop="advanceShow = true" class="setting">{{ $t('roleadd.advance') }}</span>
             {{ $t('roleadd.selectAll') }}
           </p>
@@ -50,7 +50,7 @@
           <p
             @click="selectAll(areaRoleList)"
             class="float-r"
-            :class="[wichClass(areaRoleList)]">{{ $t('roleadd.selectAll') }}</p>
+            :class="[whichClass(areaRoleList)]">{{ $t('roleadd.selectAll') }}</p>
         </div>
         <div class="role-list">
           <div
@@ -67,7 +67,7 @@
           <p
             @click="selectAll(locationRoleList)"
             class="float-r"
-            :class="[wichClass(locationRoleList)]">{{ $t('roleadd.selectAll') }}</p>
+            :class="[whichClass(locationRoleList)]">{{ $t('roleadd.selectAll') }}</p>
         </div>
         <div class="role-list">
           <div
@@ -84,7 +84,7 @@
           <p
             @click="selectAll(sceneRoleList)"
             class="float-r"
-            :class="[wichClass(sceneRoleList)]">{{ $t('roleadd.selectAll') }}</p>
+            :class="[whichClass(sceneRoleList)]">{{ $t('roleadd.selectAll') }}</p>
         </div>
         <div class="role-list">
           <div
@@ -101,7 +101,7 @@
           <p
             @click="selectAll(roleList)"
             class="float-r"
-            :class="[wichClass(roleList)]">{{ $t('roleadd.selectAll') }}</p>
+            :class="[whichClass(roleList)]">{{ $t('roleadd.selectAll') }}</p>
         </div>
         <div class="role-list">
           <div
@@ -158,7 +158,8 @@ export default {
       dialogShow: false, // 删除弹窗
       isControlInit: true, // 判断设备权限是否是初始值
       isUpdateInit: true, // 判断设备权限是否是初始值
-      isdeleteInit: true, // 判断设备权限是否是初始值
+      isDeleteInit: true, // 判断设备权限是否是初始值
+      isManageInit: true, // 判断设备权限是否是初始值
       addLoading: false
     }
   },
@@ -234,9 +235,9 @@ export default {
     deleteDevice: {
       deep: true,
       handler(val) {
-        if (this.isdeleteInit) {
+        if (this.isDeleteInit) {
           // 第一次进来取接口的值
-          this.isdeleteInit = false
+          this.isDeleteInit = false
           return
         }
         this.handleDevicePermission(val)
@@ -245,9 +246,9 @@ export default {
     manageDevice: {
       deep: true,
       handler(val) {
-        if (this.isdeleteInit) {
+        if (this.isManageInit) {
           // 第一次进来取接口的值
-          this.isdeleteInit = false
+          this.isManageInit = false
           return
         }
         this.handleDevicePermission(val)
@@ -275,7 +276,7 @@ export default {
       })
     },
     // 样式控制
-    wichClass(list) {
+    whichClass(list) {
       const checkList = list.filter(item => item.allow)
       if (checkList.length === list.length) {
         return 'check'

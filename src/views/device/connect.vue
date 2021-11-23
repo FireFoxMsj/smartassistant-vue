@@ -49,7 +49,8 @@ export default {
       timer: null,
       device: {},
       isConnecting: false, // 是否连接中
-      isConnectSuccess: false // 是否连接成功
+      isConnectSuccess: false, // 是否连接成功
+      msgId: 1,
     }
   },
   computed: {
@@ -71,30 +72,89 @@ export default {
         device
       }
       this.isConnecting = true
-      this.http.addDevice(params).then((res) => {
-        this.isConnecting = false
-        clearInterval(this.timer)
-        if (res.status === 0) {
-          this.rate = 100
-          this.isConnectSuccess = true
-          // 跳转至设备详情页
-          setTimeout(() => {
-            this.$router.replace({
-              name: 'locationSetting',
-              query: {
-                from: device.name,
-                areaId,
-                deviceId: res.data.device_id
+      if (device.plugin_id === 'homekit') {
+        // 发送发现指令
+        this.msgId = Date.now()
+        this.websocket.send({
+          id: this.msgId,
+          domain: 'homekit',
+          service: 'set_attributes',
+          identity: device.identity,
+          service_data: {
+            attributes: [
+              {
+                attribute: 'pin',
+                instance_id: 1,
+                val: device.code
               }
-            })
-          }, 1000)
-        } else {
-          this.isConnectSuccess = false
-        }
-      }).catch(() => {
-        clearInterval(this.timer)
-        this.isConnecting = false
-      })
+            ]
+          }
+        })
+        // 接受消息
+        this.websocket.onmessage((data) => {
+          const msg = JSON.parse(data)
+          if (msg.id === this.msgId) {
+            if (msg.success) {
+              this.http.addDevice(params).then((res) => {
+                this.isConnecting = false
+                clearInterval(this.timer)
+                if (res.status === 0) {
+                  this.rate = 100
+                  this.isConnectSuccess = true
+                  // 跳转至设备详情页
+                  setTimeout(() => {
+                    this.$router.replace({
+                      name: 'locationSetting',
+                      query: {
+                        from: device.name,
+                        areaId,
+                        deviceId: res.data.device_id
+                      }
+                    })
+                  }, 1000)
+                } else {
+                  this.isConnectSuccess = false
+                }
+              }).catch(() => {
+                clearInterval(this.timer)
+                this.isConnecting = false
+              })
+            } else {
+              device.error = 400
+              // 跳转至设备详情页
+              this.$router.replace({
+                name: 'homeKit',
+                query: device
+              })
+            }
+          }
+        })
+      } else {
+        this.http.addDevice(params).then((res) => {
+          this.isConnecting = false
+          clearInterval(this.timer)
+          if (res.status === 0) {
+            this.rate = 100
+            this.isConnectSuccess = true
+            // 跳转至设备详情页
+            setTimeout(() => {
+              this.$router.replace({
+                name: 'locationSetting',
+                query: {
+                  from: device.name,
+                  areaId,
+                  deviceId: res.data.device_id
+                }
+              })
+            }, 1000)
+          } else {
+            this.isConnectSuccess = false
+          }
+        }).catch(() => {
+          clearInterval(this.timer)
+          this.isConnecting = false
+        })
+      }
     },
     // 模拟进度条
     mockProcess() {
@@ -114,6 +174,7 @@ export default {
   },
   created() {
     this.device = this.$route.query
+    console.log(this.device)
     if (Object.keys(this.device).length) {
       // 连接设备
       this.connectDevice()

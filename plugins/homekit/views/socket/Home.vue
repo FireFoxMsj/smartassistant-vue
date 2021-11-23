@@ -3,7 +3,7 @@
     <OfflineNotice
       :show="!isOnline"
       :loading="isFleshing"
-      @onReflesh="reflesh"/>
+      @onRefresh="refresh"/>
     <div class="device">
       <div class="device-pic">
         <div
@@ -86,7 +86,7 @@
 import { mapGetters } from 'vuex'
 import countTo from 'vue-count-to'
 import BottomMenu from '../../components/BottomMenu.vue'
-import OfflineNotice from '../../components/OfflineNotice.vue'
+import OfflineNotice from '../../../components/OfflineNotice.vue'
 
 export default {
   name: 'home',
@@ -114,7 +114,7 @@ export default {
   },
   methods: {
     // 重新连接
-    reflesh() {
+    refresh() {
       this.isFleshing = true
       this.initData()
     },

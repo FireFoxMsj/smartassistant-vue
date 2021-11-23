@@ -37,6 +37,13 @@ import HomeKit from './views/login/homekit.vue'
 import PowerManage from './views/owner/power-manage.vue'
 import CertificateManage from './views/owner/certificate-manage.vue'
 import TransferOwner from './views/user/transfer-owner.vue'
+import Log from './views/owner/log.vue'
+import Backup from './views/owner/backup.vue'
+import BackupMark from './views/owner/backup-mark.vue'
+import SoftwareUpgrade from './views/device/software-upgrade.vue'
+import Protocol from './views/protocol/index.vue'
+import ProtocolUser from './views/protocol/user.vue'
+import ProtocolPrivacy from './views/protocol/privacy.vue'
 
 Vue.use(Router)
 
@@ -70,6 +77,11 @@ export default new Router({
       component: DeviceConnect
     },
     {
+      path: '/device/software-upgrade',
+      name: 'softwareUpgrade',
+      component: SoftwareUpgrade
+    },
+    {
       path: '/owner',
       name: 'owner',
       component: Owner
@@ -83,6 +95,21 @@ export default new Router({
       path: '/owner/certificate-manage',
       name: 'certificateManage',
       component: CertificateManage
+    },
+    {
+      path: '/owner/log',
+      name: 'log',
+      component: Log
+    },
+    {
+      path: '/owner/backup',
+      name: 'backup',
+      component: Backup
+    },
+    {
+      path: '/owner/backup-mark',
+      name: 'backupMark',
+      component: BackupMark
     },
     {
       path: '/brand/support',
@@ -228,6 +255,21 @@ export default new Router({
       path: '/transfer/owner',
       name: 'transferOwner',
       component: TransferOwner
+    },
+    {
+      path: '/protocol',
+      name: 'protocol',
+      component: Protocol
+    },
+    {
+      path: '/protocol/user',
+      name: 'protocolUser',
+      component: ProtocolUser
+    },
+    {
+      path: '/protocol/privacy',
+      name: 'protocolPrivacy',
+      component: ProtocolPrivacy
     }
   ]
 })

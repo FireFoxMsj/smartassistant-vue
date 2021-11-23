@@ -4,7 +4,9 @@ import { Locale } from 'vant'
 // 引入英文语言包
 import enUS from 'vant/es/locale/lang/en-US'
 
+// eslint-disable-next-line
 const zh = require('./zh.js')
+// eslint-disable-next-line
 const en = require('./en.js')
 
 Vue.use(VueI18n)

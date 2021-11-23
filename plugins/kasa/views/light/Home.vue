@@ -3,7 +3,7 @@
     <OfflineNotice
       :show="!isOnline"
       :loading="isFleshing"
-      @onReflesh="reflesh"/>
+      @onRefresh="refresh"/>
     <div v-show="isOn" class="device">
       <template>
         <img v-if="lightType === 'KL110(US)'" src="../../assets/light/tplink-kasa.png">
@@ -29,7 +29,7 @@
         @input="inputChange('light')"
         @drag-start="dragStart"
         @drag-end="dragEnd"
-        :disabled="!isOnline"
+        :disabled="!isOn"
         bar-height="0.8rem"
         active-color="linear-gradient(to right, #FEBF32, #FFB06B)">
         <template #button>
@@ -46,7 +46,7 @@
         @input="inputChange('temperature')"
         @drag-start="dragStart"
         @drag-end="dragEnd"
-        :disabled="!isOnline"
+        :disabled="!isOn"
         bar-height="0.8rem"
         active-color="transparent"
         inactive-color="linear-gradient(90deg, #FFB06B, #FFD26E 40%, #7ECFFC)">
@@ -60,7 +60,7 @@
 
 <script>
 import { mapGetters } from 'vuex'
-import OfflineNotice from '../../components/OfflineNotice.vue'
+import OfflineNotice from '../../../components/OfflineNotice.vue'
 
 export default {
   name: 'home',
@@ -101,7 +101,7 @@ export default {
   },
   methods: {
     // 刷新
-    reflesh() {
+    refresh() {
       this.isReady = false
       this.isFleshing = true
       this.initData()

@@ -52,7 +52,7 @@ export default {
     }
   },
   methods: {
-    ...mapActions(['setWebsocket', 'setIdentity', 'setDeviceId']),
+    ...mapActions(['setWebsocket', 'setIdentity', 'setDeviceId', 'setPluginId']),
     // pc向父级发消息
     postMessage(data) {
       window.parent.postMessage(data, '*')
@@ -73,6 +73,8 @@ export default {
       const { model } = query
       // 灯
       const light = ['LIFX Mini W', 'lamp9', 'color8']
+      // 网关
+      const gateway = ['gateway']
       // 开关
       const switchs = ['zt.switch.bb102s', 'ZTSW3ZL001W', 'ZTSW1SLW001W', 'ZTSW2SLW001W', 'ZTSW3SLW001W']
       // 插座
@@ -93,6 +95,11 @@ export default {
           name: 'sockets',
           query
         })
+      } else if (gateway.includes(model)) {
+        this.$router.replace({
+          name: 'gateway',
+          query
+        })
       }
     }
   },
@@ -108,6 +115,9 @@ export default {
     // 设置设备唯一标识
     const { identity } = params
     this.setIdentity(identity)
+    // 设置插件唯一id
+    const { pluginId } = params
+    this.setPluginId(pluginId)
     // 生成连接 并设置全局对象
     const ws = new Socket({
       url: `${getRemote()}?token=${token}&sa_id=${saId}`,

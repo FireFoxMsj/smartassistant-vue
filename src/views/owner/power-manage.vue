@@ -31,6 +31,14 @@ export default {
         {
           value: 'certificateManage',
           name: this.$t('owner.certificate')
+        },
+        {
+          value: 'log',
+          name: this.$t('owner.log')
+        },
+        {
+          value: 'backup',
+          name: this.$t('owner.backup')
         }
       ]
     }
@@ -43,6 +51,14 @@ export default {
       if (item.value === 'certificateManage') {
         this.$router.push({
           name: 'certificateManage'
+        })
+      } else if (item.value === 'log') {
+        this.$router.push({
+          name: 'log'
+        })
+      } else if (item.value === 'backup') {
+        this.$router.push({
+          name: 'backup'
         })
       }
     }

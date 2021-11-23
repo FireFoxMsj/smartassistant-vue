@@ -47,8 +47,8 @@
   </div>
 </template>
 <script>
-import NameSheet from '@/components/NameSheet.vue'
 import { mapActions, mapGetters } from 'vuex'
+import NameSheet from '@/components/NameSheet.vue'
 
 const defaultHeader = require('../../assets/default-header.png')
 

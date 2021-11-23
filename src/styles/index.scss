@@ -205,6 +205,12 @@ button {
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
 }
+.three-line {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
 .wrapper {
   min-height: 100vh;
   background: $bgColor;
@@ -228,6 +234,7 @@ button {
   max-width: 750px;
   left: 50%;
   transform: translateX(-50%);
+  z-index: 999;
 }
 #app .van-nav-bar__title {
   font-size: 0.36rem;
@@ -246,6 +253,7 @@ button {
   left: 50%;
   transform: translateX(-50%);
   max-width: 7.5rem;
+  z-index: 9999;
 }
 #app .van-popup--bottom {
   left: 50%;
@@ -284,5 +292,20 @@ button {
 @media only screen and (min-width: 750px){
   .van-sticky--fixed {
     width: 750px;
+  }
+}
+
+.animate-arrow-down {
+  animation: frames-arrow-down 1.5s infinite;
+}
+
+@keyframes frames-arrow-down {
+  0% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(0.1rem);
+    opacity: 0;
   }
 }

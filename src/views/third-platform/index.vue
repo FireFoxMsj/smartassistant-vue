@@ -41,11 +41,13 @@ export default {
 .third {
   min-height: 100vh;
   background: $bgColor;
+  overflow: auto;
 }
 .third-iframe {
   width: 100%;
-  height: 100vh;
+  height: calc(100vh - 1rem);
   border: 0;
   margin-top: -1PX;
+  overflow: auto;
 }
 </style>

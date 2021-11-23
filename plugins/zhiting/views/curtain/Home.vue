@@ -3,7 +3,7 @@
     <OfflineNotice
       :show="!isOnline"
       :loading="isFleshing"
-      @onReflesh="refresh"/>
+      @onRefresh="refresh"/>
     <div class="device">
       <template v-if="curtainType===0">
         <div class="curtain" ref="curtain">
@@ -190,7 +190,7 @@
 <script>
 import { mapGetters } from 'vuex'
 import BottomMenu from '../../components/BottomMenu.vue'
-import OfflineNotice from '../../components/OfflineNotice.vue'
+import OfflineNotice from '../../../components/OfflineNotice.vue'
 
 const menu = require('../../assets/curtain/menu.png')
 const correction = require('../../assets/curtain/refresh.png')

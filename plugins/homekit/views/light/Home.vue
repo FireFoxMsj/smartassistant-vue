@@ -1,9 +1,9 @@
 <template>
   <div class="home">
-    <OfflineNotice :show="!isOnline" :loading="isFleshing" @onReflesh="refresh" />
+    <OfflineNotice :show="!isOnline" :loading="isFleshing" @onRefresh="refresh" />
     <div v-show="hasColor" class="color-box">
       <p>{{ deviceName }}</p>
-      <div id="picker" class="picker-box">
+      <div id="picker" class="picker-box" :class="{'disable': !isOn}">
         <svg style="display:none;">
           <defs>
             <g id="handle">
@@ -18,6 +18,7 @@
             </g>
           </defs>
         </svg>
+        <div class="mask"></div>
       </div>
     </div>
     <div v-if="!hasColor" class="device">
@@ -34,7 +35,7 @@
       ></van-button>
     </div>
     <div v-if="permission.brightness" class="control">
-      <p>亮度 {{ light }}%</p>
+      <p>亮度 {{ getPercent(lightMax, lightMin, light) }}%</p>
       <van-slider
         v-model="light"
         :min="lightMin"
@@ -42,7 +43,7 @@
         @input="inputChange('light')"
         @drag-start="dragStart"
         @drag-end="dragEnd"
-        :disabled="!isOnline"
+        :disabled="!isOn"
         bar-height="0.8rem"
         active-color="linear-gradient(to right, #FEBF32, #FFB06B)"
       >
@@ -52,7 +53,7 @@
       </van-slider>
     </div>
     <div v-if="permission.color_temp" class="control">
-      <p>色温 {{ getPercent(tempMax, tempMin, temperature) }}</p>
+      <p>色温 {{ getPercent(tempMax, tempMin, temperature) }}%</p>
       <van-slider
         v-model="temperature"
         :min="tempMin"
@@ -60,7 +61,7 @@
         @input="inputChange('temperature')"
         @drag-start="dragStart"
         @drag-end="dragEnd"
-        :disabled="!isOnline"
+        :disabled="!isOn"
         bar-height="0.8rem"
         active-color="transparent"
         inactive-color="linear-gradient(90deg, #FFB06B, #FFD26E 40%, #7ECFFC)"
@@ -96,7 +97,7 @@
 <script>
 import { mapGetters } from 'vuex'
 import iro from '@jaames/iro'
-import OfflineNotice from '../../components/OfflineNotice.vue'
+import OfflineNotice from '../../../components/OfflineNotice.vue'
 
 const onImg = require('../../assets/light/light-on.png')
 const offImg = require('../../assets/light/light-off.png')
@@ -427,6 +428,21 @@ export default {
   .picker-box {
     display: inline-block;
     padding-top: 0.6rem;
+    position: relative;
+    .mask{
+      display: none;
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      background-color: transparent;
+      z-index: 10;
+    }
+  }
+  .picker-box.disable{
+    opacity: .5;
+    .mask{
+      display: block;
+    }
   }
 }
 .device {

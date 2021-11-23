@@ -40,7 +40,10 @@
               :src="device.logo_url"
               fit="contain"/>
           </div>
-          <p class="discover-name">{{ device.name }}</p>
+          <div class="discover-info">
+            <p class="discover-name">{{ device.name }}</p>
+            <span class="plugin-id one-line">{{device.plugin_id}}</span>
+          </div>
           <button
             class="add-btn"
             @click="connect(device)">{{ $t('discover.add') }}</button>
@@ -101,10 +104,9 @@ export default {
       }, 5000)
     },
     onClickLeft() {
-      this.$router.go(-1)
+      this.$router.push({ name: 'device' })
     },
     connect(device) {
-      console.log(device)
       if (!this.permissions.add_device) {
         this.$toast(this.$t('global.noPermission'))
         return
@@ -112,7 +114,10 @@ export default {
       const query = Object.assign({}, device)
       query.area_id = this.areaId
       if (device.plugin_id === 'homekit') {
-        this.matchCode(query)
+        this.$router.push({
+          name: 'homeKit',
+          query
+        })
       } else {
         this.$router.push({
           name: 'deviceConnect',
@@ -134,30 +139,20 @@ export default {
       this.websocket.onmessage((data) => {
         const msg = JSON.parse(data)
         if (msg.id === this.msgId) {
-          if (!msg.result) {
-            return
+          if (!msg.result && msg.error === 'record not found') {
+            setTimeout(() => {
+              this.$router.replace({
+                name: 'homeKit',
+                query: deviceInfo
+              })
+            }, 1000)
+          } else {
+            // 跳转至设备详情页
+            this.$router.push({
+              name: 'deviceConnect',
+              query: deviceInfo
+            })
           }
-          const { instances } = msg.result.device
-          const info = instances.filter(item => item.type === 'info')
-          const { attributes } = info[0]
-          attributes.forEach((attr) => {
-            if (attr.attribute === 'pin') {
-              if (attr.val) {
-                // 跳转至设备详情页
-                this.$router.push({
-                  name: 'deviceConnect',
-                  query: deviceInfo
-                })
-              } else {
-                setTimeout(() => {
-                  this.$router.replace({
-                    name: 'homeKit',
-                    query: deviceInfo
-                  })
-                }, 1000)
-              }
-            }
-          })
         }
       })
     }
@@ -292,13 +287,26 @@ export default {
     height: 100%;
   }
 }
-.discover-name {
+.discover-info{
   padding: 0 0.3rem;
   width: 4.7rem;
+  word-break: break-all;
+}
+.discover-name {
   font-size: 0.28rem;
   color: #3F4663;
   line-height: 1.5;
-  word-break: break-all;
+}
+.plugin-id{
+  max-width: 3.5rem;
+  display: inline-block;
+  background-color: rgba(7, 181, 163, .1);
+  height: .3rem;
+  border-radius: .15rem;
+  padding: 0 .2rem;
+  color: #07B5A3;
+  font-size: .2rem;
+  margin-top: .15rem;
 }
 .add-btn {
   padding: 0;

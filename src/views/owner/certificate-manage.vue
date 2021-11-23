@@ -83,7 +83,7 @@ export default {
       }
     },
     getUserCertificate() {
-      this.http.userCertificate().then((res) => {
+      this.http.getUserCertificate().then((res) => {
         if (res.status !== 0) {
           return
         }
